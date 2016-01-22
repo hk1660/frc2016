@@ -12,15 +12,52 @@ public class Image {
     static USBCamera usbCam = new USBCamera();
     static Timer timerA = new Timer();
     static double timerB = timerA.get();
-    
-	public static void main(String[] args) {		
-		timerA.start();
-		if(timerB > 0.0 && timerB < 60.0){
-			usbCam.startCapture();
-		}
-		if(timerB > 60.0){
-			usbCam.stopCapture();
-		}
-	}
+	
+	//FIELDS//
+	
+		//raw image array
+	
+		//centerX value of target (col)
+	
+		//centerY value of target (row)
+	
+		//size of target
+	
 
+    
+    //METHODS//
+    // (1) Initialization Method for all pre-match functions
+    public void camInit(){
+    	
+    		usbCam.startCapture();
+		   
+    }
+    
+    // (2) Overall Processing Method to be called by Robot.java
+    public void camProcessing(){
+    	
+    }
+    
+    
+    	//Method to capture values from camera
+    
+    
+    
+    	//Method to analyze camera image for stuff
+    
+    // (3) Kill the camera
+    public void camKill(){
+    			usbCam.stopCapture();
+    	}
+
+
+    
+    //ACCESSOR METHODS
+    
+    
+    //MUTATOR METHODS
+    
+    
+    
+	
 }
