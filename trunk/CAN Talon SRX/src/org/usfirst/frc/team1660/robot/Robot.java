@@ -1,7 +1,5 @@
 package org.usfirst.frc.team1660.robot;
 
-
-import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -9,72 +7,70 @@ import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.ni.vision.NIVision;
-import com.ni.vision.NIVision.DrawMode;
-import com.ni.vision.NIVision.Image;
-import com.ni.vision.NIVision.ShapeMode;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Encoder;
 
-import edu.wpi.first.wpilibj.CameraServer;
-//import org.usfirst.frc.team1660.robot.Image;
+import org.usfirst.frc.team1660.robot.CamImage;
 
-/**
- * This is a demo program showing how to use Mecanum control with the tinkoDrive class.
- */
+
 public class Robot extends SampleRobot {
+	
+	CamImage tinkoCam = new CamImage();
 	
     RobotDrive tinkoDrive;
     Joystick xDrive = new Joystick(0);// uses/assigns ports 
     Joystick xMan = new Joystick(1);
     int session;
-    Image frame;
+	DigitalInput testLimit = new DigitalInput(0);
 
+	// Channels for the wheels
+    CANTalon left1	= new CANTalon(1);
+    CANTalon left2	= new CANTalon(2);
+    CANTalon left3	= new CANTalon(3);
+    CANTalon right1	= new CANTalon(4);
+    CANTalon right2	= new CANTalon(5);
+    CANTalon right3	= new CANTalon(6);
     
-    // Channels for the wheels
-    CANTalon frontLeftChannel	= new CANTalon(2);
-    CANTalon rearLeftChannel	= new CANTalon(3);
-    CANTalon frontRightChannel	= new CANTalon(1);
-    CANTalon rearRightChannel	= new CANTalon(0);
+    Encoder leftEnc = new Encoder(null, null);
+    Encoder rightEnc = new Encoder(null, null);
+    
     
 
     public void RobotInit() {
-        tinkoDrive = new RobotDrive(frontLeftChannel, rearLeftChannel, frontRightChannel, rearRightChannel);
+        tinkoDrive = new RobotDrive(left1, right1);
     	tinkoDrive.setInvertedMotor(MotorType.kFrontLeft, true);	// invert the left side motors
-    	tinkoDrive.setInvertedMotor(MotorType.kRearLeft, true);		// you may need to change or remove this to match your robot
         tinkoDrive.setExpiration(0.1);
-        frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
 
-        // the camera name (ex "cam0") can be found through the roborio web interface
-        session = NIVision.IMAQdxOpenCamera("cam0",
-                NIVision.IMAQdxCameraControlMode.CameraControlModeController);
-        NIVision.IMAQdxConfigureGrab(session);
-        //stick = new Joystick(joystickChannel);
-        
-        
-
+        tinkoCam.camInit();
         
     }
         
-
-    /**
-     * Runs the motors with tank drive.
-     */
     public void operatorControl() {
-        tinkoDrive.setSafetyEnabled(true);
+        
+    	tinkoDrive.setSafetyEnabled(true);
+        
         while (isOperatorControl() && isEnabled()) {
         	
+        	tinkoCam.camProcessing();
         	
-        	//SmartDashboard.putString("Cam",);
+        	SmartDashboard.putNumber("Left Encoder", leftEnc.getRaw());
+        	SmartDashboard.putNumber("Right Encoder", rightEnc.getRaw());
+        	SmartDashboard.putBoolean("Limit Test", testLimit.get());
         	
-        	// Use the joystick X axis for lateral movement, Y axis for forward movement, and Z axis for rotation.
-        	// This sample does not use field-oriented drive, so the gyro input is set to zero.
-            rearRightChannel.set(xDrive.getRawAxis(0));
-            
-            
-            
- 
+            right1.set(xDrive.getRawAxis(0)); 
             
             Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles
         }
+        
+        tinkoCam.camKill();
+        
     }
+    
+    //Driving Method
+    
+    //Manipulator Methods
+    
+    
+    
     
 }
