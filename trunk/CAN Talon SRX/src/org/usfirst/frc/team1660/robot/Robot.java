@@ -57,8 +57,16 @@ public class Robot extends SampleRobot {
         	SmartDashboard.putNumber("Right Encoder", rightEnc.getRaw());
         	SmartDashboard.putBoolean("Limit Test", testLimit.get());
         	
-            right1.set(xDrive.getRawAxis(0)); 
-            
+        	
+        	//Driving Method
+            right1.set(xDrive.getRawAxis(0));
+            right2.set(xDrive.getRawAxis(0)); 
+            right3.set(xDrive.getRawAxis(0)); 
+            left1.set(xDrive.getRawAxis(-0));
+            left2.set(xDrive.getRawAxis(-0)); 
+            left3.set(xDrive.getRawAxis(-0)); 
+
+            //Manipulator Methods
             Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles
         }
         
@@ -66,11 +74,15 @@ public class Robot extends SampleRobot {
         
     }
     
-    //Driving Method
-    
-    //Manipulator Methods
+   
     
     
     
     
 }
+
+
+
+
+
+
