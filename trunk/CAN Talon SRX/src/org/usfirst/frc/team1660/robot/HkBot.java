@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import org.usfirst.frc.team1660.robot.CamImage;
 
 
-public class Robot extends SampleRobot {
+public class HkBot extends SampleRobot {
 	
 	CamImage tinkoCam = new CamImage();
 	
@@ -44,8 +44,18 @@ public class Robot extends SampleRobot {
         tinkoCam.camInit();
         
     }
+    public void autonomous(){
+    	
+    	
+    	while(isAutonomous() && isEnabled()){
+    		
+    		reachBreachScore();
+    		
+	
+    	}
+    }
         
-    public void operatorControl() {
+	public void operatorControl() {
         
     	tinkoDrive.setSafetyEnabled(true);
         
@@ -74,13 +84,46 @@ public class Robot extends SampleRobot {
         
     }
     
-   
+    
+   //AUTO MODE METHODS
+
+	//Method to reach teh D, Breach a Drivetrain D, & Score on Low Goal
+	private void reachBreachScore() {
+		
+		
+		//reach(based on time /LS)
+		
+		tinkoDrive.arcadeDrive(moveValue, rotateValue, squaredInputs);
+		
+		//breach (based on time ?)
+		
+		
+		//aim generally towards goal (based on gyro)
+		
+		
+		//aim precisely at goal (based on camera)
+		
+		
+		//drive fwd to goal (based on time/ accel)
+		
+		
+		//score boulder (based on time)
+		
+		
+		
+		//go back to "reach"
+		
+		
+		
+		
+		
+	}
+    
     
     
     
     
 }
-
 
 
 
