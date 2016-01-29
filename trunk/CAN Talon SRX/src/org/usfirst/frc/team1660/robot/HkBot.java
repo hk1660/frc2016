@@ -108,7 +108,7 @@ public class HkBot extends SampleRobot {
 		
 		//reach defense(based on time /LS)
 		if(timerA < 2){
-			goForward(1);
+			goForward(1.0);
 			
 			
 		}
@@ -117,7 +117,7 @@ public class HkBot extends SampleRobot {
 		
 		//breach rough terrain(based on time ?)
 		if(timerA < 3){
-			goForward(1);
+			goForward(1.0);
 		}
 		
 		
@@ -182,15 +182,15 @@ public class HkBot extends SampleRobot {
 	}
 	// shoots ball at given speed
 	public void shootBall(double speed){
-		manipLeft.set(speed);
-		manipRight.set(-speed);
+		spitLeft.set(speed);
+		spitRight.set(-speed);
 	}
 	//turns on act. motor at given speed
 	public void turnOnActuator(double speed){
 		dart.set(speed);
 	}
 	//move robot based on camera image
-	public void moveRobot(image image){
+	public void moveRobot(CamImage image){
 		//determine how to move robot based on image
 		
 		//move robot
