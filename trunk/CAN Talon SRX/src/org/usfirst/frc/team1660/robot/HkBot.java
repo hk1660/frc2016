@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1660.robot;
 
 import edu.wpi.first.wpilibj.CANTalon;
+import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -16,15 +17,18 @@ import org.usfirst.frc.team1660.robot.CamImage;
 
 public class HkBot extends SampleRobot {
 	
-	CamImage tinkoCam = new CamImage();
+	//CamImage tinkoCam = new CamImage();
     Timer timerAuto = new Timer();
     double timerA = timerAuto.get();
-    RobotDrive tinkoDrive;
     Joystick xDrive = new Joystick(0);// uses/assigns ports 
     Joystick xMan = new Joystick(1);
     int session;
-	DigitalInput testLimit = new DigitalInput(0);
-	
+	//DigitalInput testLimit = new DigitalInput(0);
+	double startAngle = 0;
+	double secondAngle = 1000;
+	double thirdAngle = 2000;
+	double fourthAngle = 3000;
+			
 	
 	
 
@@ -35,28 +39,32 @@ public class HkBot extends SampleRobot {
     CANTalon right1	= new CANTalon(4);
     CANTalon right2	= new CANTalon(5);
     CANTalon right3	= new CANTalon(6);
+    // RobotDrive tinkoDrive = new RobotDrive(left1, right1);
+    
+    
     // Channels for manipulator
-    CANTalon spitLeft	= new CANTalon(7); 
-    CANTalon spitRight	= new CANTalon(8);
+    //CANTalon spitLeft	= new CANTalon(7); 
+    //CANTalon spitRight	= new CANTalon(8);
     //actuator
-    CANTalon dart	= new CANTalon(9);
+    //CANTalon dart	= new CANTalon(9);
     //pistons
     Relay pusher = new Relay(1);
     Relay compressor = new Relay(2);
     
     Relay extra = new Relay(3);
-    CANTalon extra1 = new CANTalon(10);
-    Encoder leftEnc = new Encoder(null, null);
-    Encoder rightEnc = new Encoder(null, null);
-    
+    CANTalon armMotor = new CANTalon(7);
+    //Encoder rightEnc = new Encoder(null, null);
     
 
     public void RobotInit() {
-        tinkoDrive = new RobotDrive(left1, right1);
-    	tinkoDrive.setInvertedMotor(MotorType.kFrontLeft, true);	// invert the left side motors
-        tinkoDrive.setExpiration(0.1);
-
-        tinkoCam.camInit();
+        
+    	//tinkoDrive.setInvertedMotor(MotorType.kFrontLeft, true);	// invert the left side motors
+       // tinkoDrive.setExpiration(0.1);
+        
+        
+        
+        
+        //tinkoCam.camInit();
         
     }
     public void autonomous(){
@@ -72,33 +80,58 @@ public class HkBot extends SampleRobot {
         
 	public void operatorControl() {
         
-    	tinkoDrive.setSafetyEnabled(true);
+    	//tinkoDrive.setSafetyEnabled(true);
+        
+    	left2.changeControlMode(TalonControlMode.Follower);
+        left2.set(1);
+        left3.changeControlMode(TalonControlMode.Follower);
+        left3.set(1);
+        right2.changeControlMode(TalonControlMode.Follower);
+        right2.set(4);
+        right3.changeControlMode(TalonControlMode.Follower);
+        right3.set(4);
+        
+        armMotor.changeControlMode(TalonControlMode.Position);
         
         while (isOperatorControl() && isEnabled()) {
-        	
-        	tinkoCam.camProcessing();
-        	
-        	SmartDashboard.putNumber("Left Encoder", leftEnc.getRaw());
-        	SmartDashboard.putNumber("Right Encoder", rightEnc.getRaw());
-        	SmartDashboard.putBoolean("Limit Test", testLimit.get());
-        	
-        	
-        	//Driving Method
-        /*  right1.set(xDrive.getRawAxis(0));
-            right2.set(xDrive.getRawAxis(0)); 
-            right3.set(xDrive.getRawAxis(0)); 
-            left1.set(xDrive.getRawAxis(0*-1));
-            left2.set(xDrive.getRawAxis(0*-1)); 
-            left3.set(xDrive.getRawAxis(0*-1)); */
-            tinkoDrive.tankDrive(xDrive, 1, xDrive, 5);
+        	armMove();
+        	tinkDrive();
+        	//tinkoCam.camProcessing();
+        
+        	//SmartDashboard.putNumber("Left Encoder", leftEnc.getRaw());
+        	//SmartDashboard.putNumber("Right Encoder", rightEnc.getRaw());
+        //SmartDashboard.putBoolean("Limit Test", testLimit.get());
+            //tinkoDrive.tankDrive(xDrive, 1, xDrive, 5);
             //Manipulator Methods
+        	SmartDashboard.putDouble("Axis 1", xDrive.getRawAxis(1));
+        	SmartDashboard.putDouble("Axis 5", xDrive.getRawAxis(5));
             Timer.delay(0.005);	// wait 5ms to avoid hogging CPU cycles
         }
         
-        tinkoCam.camKill();
+       // tinkoCam.camKill();
         
     }
-    
+    //Arm methods Donashia
+	
+	public void armMove(){
+		if(xMan.getRawButton(1)==true){
+			armMotor.set(startAngle);
+			SmartDashboard.putNumber("Arm Encoder", armMotor.getPosition());
+		}
+		else if(xMan.getRawButton(2)==true){
+		    armMotor.set(secondAngle);
+		    SmartDashboard.putNumber("Arm Encoder", armMotor.getPosition());
+		}
+		else if(xMan.getRawButton(3)==true){
+			armMotor.set(thirdAngle);
+			SmartDashboard.putNumber("Arm Encoder", armMotor.getPosition());
+		}
+		else if(xMan.getRawButton(4)==true){
+		    armMotor.set(fourthAngle);
+		    SmartDashboard.putNumber("Arm Encoder", armMotor.getPosition());
+		}
+	}
+	
     
    //AUTO MODE METHODS
 
@@ -113,8 +146,6 @@ public class HkBot extends SampleRobot {
 			
 		}
 		
-		//tinkoDrive.arcadeDrive(moveValue, rotateValue, squaredInputs);
-		
 		//breach rough terrain(based on time ?)
 		if(timerA < 3){
 			goForward(1.0);
@@ -123,8 +154,9 @@ public class HkBot extends SampleRobot {
 		
 		//aim generally towards goal (based on gyro)
 			
-		//aim precisely at goal (based on camera)
 		
+		//aim precisely at goal (based on camera)
+	
 		
 		//drive fwd to goal (based on time)
 		
@@ -136,6 +168,27 @@ public class HkBot extends SampleRobot {
 		//go back to "reach"		
 		   
 	}
+	//tinko Drive
+		public void tinkDrive(){
+//			left2.changeControlMode(TalonControlMode.Follower);
+//	        left2.set(1);
+//	        left3.changeControlMode(TalonControlMode.Follower);
+//	        left3.set(1);
+//	        right2.changeControlMode(TalonControlMode.Follower);
+//	        right2.set(4);
+//	        right3.changeControlMode(TalonControlMode.Follower);
+//	        right3.set(4);
+//	        
+	        
+			double speed = xDrive.getRawAxis(1);
+			double speedTwo = xDrive.getRawAxis(5);
+			left1.set(-speed);
+			
+			right1.set(speedTwo);
+	
+		
+		}
+	
 	//go forward
 	public void goForward(double speed){
 		
@@ -181,14 +234,16 @@ public class HkBot extends SampleRobot {
 
 	}
 	// shoots ball at given speed
-	public void shootBall(double speed){
+	/*public void shootBall(double speed){
 		spitLeft.set(speed);
 		spitRight.set(-speed);
 	}
+	*/
 	//turns on act. motor at given speed
-	public void turnOnActuator(double speed){
+	/*public void turnOnActuator(double speed){
 		dart.set(speed);
 	}
+	*/
 	//move robot based on camera image
 	public void moveRobot(CamImage image){
 		//determine how to move robot based on image
