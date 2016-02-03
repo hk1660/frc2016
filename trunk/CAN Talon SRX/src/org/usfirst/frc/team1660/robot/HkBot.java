@@ -96,6 +96,7 @@ public class HkBot extends SampleRobot {
         	
         	tinkDrive();
         	armMove();
+        	encValue();
         	
         	//tinkoCam.camProcessing();
         
@@ -198,6 +199,27 @@ public class HkBot extends SampleRobot {
 		//go back to "reach"		
 		   
 	}	
+	
+	//Encoder drive-train method
+	
+	
+	public void encValue(){ 
+		int encThreshold = 1400;
+		SmartDashboard.putInt("leftEnc", left1.getEncPosition());
+		SmartDashboard.putInt("rightEnc", right1.getEncPosition());
+		if(left1.getEncPosition() - right1.getEncPosition() >= encThreshold){
+		    left1.setP(0.6);
+		}
+		
+		if(right1.getEncPosition() - left1.getEncPosition() >= encThreshold){
+		    right1.setP(0.6);
+		    
+		}
+		
+		
+		
+	}
+    
 	
 	/* AUTO Go forward (ADONIS) */
 	public void goForward(double speed){
