@@ -56,6 +56,8 @@ public class HkBot extends SampleRobot {
 	double collectorAngle = 90.0;
 	double portcullisAngle = 115.0;
 	double climbAngle = -15.0;
+	
+	double currentArmAngle = startAngle;
     
 	
     public void RobotInit() {
@@ -71,6 +73,10 @@ public class HkBot extends SampleRobot {
         right3.set(4);
         
         armMotor.changeControlMode(TalonControlMode.Position);
+        
+        /* Initialize values for the Armstrong */
+        double currentArmAngle = startAngle;
+		
         
     	//tinkoDrive.setInvertedMotor(MotorType.kFrontLeft, true);	// invert the left side motors
         //tinkoDrive.setExpiration(0.1);
@@ -99,9 +105,6 @@ public class HkBot extends SampleRobot {
         	encValue();
         	
         	//tinkoCam.camProcessing();
-        
-        	//SmartDashboard.putNumber("Left Encoder", leftEnc.getRaw());
-        	//SmartDashboard.putNumber("Right Encoder", rightEnc.getRaw());
         	//SmartDashboard.putBoolean("Limit Test", testLimit.get());
             //tinkoDrive.tankDrive(xDrive, 1, xDrive, 5);
             
@@ -116,29 +119,34 @@ public class HkBot extends SampleRobot {
 	
 	/* 6 CIM Drivetrain with Joysticks (MATTHEW) */
 	public void tinkDrive(){
-
-		//get values (*ideal and aqctual)
+		
+		//get values ("Desired" motion from Joysticks and "Actual" motion from Encoders)
 		double leftJoy = xDrive.getRawAxis(1);
 		double rightJoy = xDrive.getRawAxis(5);
-	
 	    double leftEncoder = left1.getEncVelocity();
 	    double rightEncoder = right1.getEncVelocity();
-		
-	    //Find the error between values
+
+		SmartDashboard.putDouble("leftJoy", leftJoy);
+    	SmartDashboard.putDouble("rightJoy", rightJoy);
+		SmartDashboard.putDouble("leftEncoder", leftEncoder);
+    	SmartDashboard.putDouble("rightEncoder", rightEncoder);
 	    
+	    //Find the error between values
+	    	//what value would you expect from the encoders at full speed, 1.0?
+    	
+    	
+    	
 	    //Adjust the motors with pid loop
 	    
+    		//set CANTalon control modes
+
+    		//set P, I, D values
 	    
 	    
 	    //Run the motors
 		left1.set(leftJoy);
 		right1.set(rightJoy);
-	
-		//print stuff
-		SmartDashboard.putDouble("Axis 1", xDrive.getRawAxis(1));
-    	SmartDashboard.putDouble("Axis 5", xDrive.getRawAxis(5));
-    	
-    	
+	    	
     	
 	}
 
@@ -146,19 +154,21 @@ public class HkBot extends SampleRobot {
     /*Move ArmStrong with Joystick (DONASHIA)		*/
 	public void armMove(){
 	
-		//Set armstrong to specific angles
+		//Decide which angle to use based on buttons
 		if(xMan.getRawButton(1)==true){
-			armMotor.set(startAngle);
+			currentArmAngle = startAngle;
 		}
 		else if(xMan.getRawButton(2)==true){
-		    armMotor.set(drawbridgeAngle);
+		    currentArmAngle = drawbridgeAngle;
 		}
 		else if(xMan.getRawButton(3)==true){
-			armMotor.set(collectorAngle);
+			currentArmAngle = collectorAngle;
 		}
 		else if(xMan.getRawButton(4)==true){
-		    armMotor.set(portcullisAngle);
+			currentArmAngle = portcullisAngle;
 		}
+		
+		armMotor.set(currentArmAngle);
 		
 		//Move armstrong up and down manually
 		
@@ -240,11 +250,7 @@ public class HkBot extends SampleRobot {
 	/* AUTO Go forward (ADONIS) */
 	public void goForward(double speed){
 		left1.set(speed);
-		left2.set(speed);
-		left3.set(speed);
 		right1.set(-speed);
-		right2.set(-speed);
-		right3.set(-speed);
 	
 	}
 	
