@@ -117,13 +117,29 @@ public class HkBot extends SampleRobot {
 	/* 6 CIM Drivetrain with Joysticks (MATTHEW) */
 	public void tinkDrive(){
 
-		double speed = xDrive.getRawAxis(1);
-		double speedTwo = xDrive.getRawAxis(5);
-		left1.set(-speed);
-		right1.set(speedTwo);
+		//get values (*ideal and aqctual)
+		double leftJoy = xDrive.getRawAxis(1);
+		double rightJoy = xDrive.getRawAxis(5);
 	
+	    double leftEncoder = left1.getEncVelocity();
+	    double rightEncoder = right1.getEncVelocity();
+		
+	    //Find the error between values
+	    
+	    //Adjust the motors with pid loop
+	    
+	    
+	    
+	    //Run the motors
+		left1.set(leftJoy);
+		right1.set(rightJoy);
+	
+		//print stuff
 		SmartDashboard.putDouble("Axis 1", xDrive.getRawAxis(1));
     	SmartDashboard.putDouble("Axis 5", xDrive.getRawAxis(5));
+    	
+    	
+    	
 	}
 
 	
@@ -223,7 +239,6 @@ public class HkBot extends SampleRobot {
 	
 	/* AUTO Go forward (ADONIS) */
 	public void goForward(double speed){
-		
 		left1.set(speed);
 		left2.set(speed);
 		left3.set(speed);
