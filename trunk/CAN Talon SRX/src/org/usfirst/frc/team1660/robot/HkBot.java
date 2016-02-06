@@ -63,6 +63,13 @@ public class HkBot extends SampleRobot {
     public void RobotInit() {
     	
     	/* Set Drivetrain Motors to follow Master CIM on each side*/
+    	left1.changeControlMode(CANTalon.TalonControlMode.Speed);
+    	right1.changeControlMode(CANTalon.TalonControlMode.Speed);
+        left1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+        right1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+        left1.setPID(1.0, 0.0, 0.0);
+        right1.setPID(1.0, 0.0, 0.0);
+        
        	left2.changeControlMode(TalonControlMode.Follower);
         left2.set(1);
         left3.changeControlMode(TalonControlMode.Follower);
@@ -133,13 +140,21 @@ public class HkBot extends SampleRobot {
 	    
 	    //Find the error between values
 	    	//what value would you expect from the encoders at full speed, 1.0?
-    	
+    	    double freeSpeed = 680;
+    	    double workSpeed = freeSpeed/2;
+    	    if(leftJoy == 1.0){
+    	    	//left1 = workSpeed;
+    	    }
+    	    if(rightJoy == 1.0){
+    	    	//right1 = workSpeed;
+    	    }
     	
     	
 	    //Adjust the motors with pid loop
 	    
     		//set CANTalon control modes
-
+            // left1.setControlMode(speed);
+            // right1.setControlMode(speed);
     		//set P, I, D values
 	    
 	    
@@ -151,7 +166,8 @@ public class HkBot extends SampleRobot {
 	}
 
 	
-    /*Move ArmStrong with Joystick (DONASHIA)		*/
+    /*Move ArmStrong with JoyCCGHJL;'stick (DONASHIA)		*/
+
 	public void armMove(){
 	
 		//Decide which angle to use based on buttons
@@ -207,7 +223,7 @@ public class HkBot extends SampleRobot {
 		if(timerA < 3){
 			goForward(1.0);
 		}
-		
+
 		
 		//aim generally towards goal (based on gyro)
 			
@@ -244,7 +260,7 @@ public class HkBot extends SampleRobot {
 		
 		
 		
-	}
+	}	
     
 	
 	/* AUTO Go forward (ADONIS) */
