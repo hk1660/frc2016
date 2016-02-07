@@ -22,7 +22,7 @@ public class CamImage {
 	static double timerB = timerA.get();
 	int session;
 	Image frame;
-
+    
 	//raw image array
 
 	//centerX value of target (col)
