@@ -33,7 +33,6 @@ public class HkBot extends SampleRobot {
 	// CamImage tinkoCam = new CamImage();
 
 	int session;
-	private int encThreshold = 1400;
 	// USBCamera cam0 = new USBCamera();
 	// NetworkTablesBridge table;
 	// ByteBuffer image;
@@ -61,22 +60,22 @@ public class HkBot extends SampleRobot {
 	double collectorAngle = 90.0;
 	double portcullisAngle = 115.0;
 	double climbAngle = -15.0;
+	double currentArmAngle = startAngle;
 
-	/*Auto Fields */
+	/* Auto Fields */
 	Timer timerAuto = new Timer();
 	double timerA = timerAuto.get();
 
-	
+
 	public void RobotInit() {
 
-		/* Set Drivetrain Motors to follow Master CIM on each side */
-		smartDrive = new SmartDrive();
 		armMotor.changeControlMode(TalonControlMode.Position);
 
+		/* Initialize values for the Armstrong */
+		double currentArmAngle = startAngle;
 		// tinkoDrive.setInvertedMotor(MotorType.kFrontLeft, true); // invert
 		// the left side motors
 		// tinkoDrive.setExpiration(0.1);
-
 		// tinkoCam.camInit();
 
 	}
@@ -110,7 +109,7 @@ public class HkBot extends SampleRobot {
 		// tinkoCam.camKill();
 
 	}
-
+    	
 	/* TELEOP METHODS */
 
 	/* Arm limit switch */
@@ -121,26 +120,35 @@ public class HkBot extends SampleRobot {
 		SmartDashboard.putBoolean("Arm Limiter", armLimiter.get());
 	}
 
-	/* Move ArmStrong with Joystick (DONASHIA) */
+    /*Move ArmStrong with Joystick (DONASHIA)		*/
+
 	public void armMove() {
 
-		// Set armstrong to specific angles
+		// Decide which angle to use based on buttons
 		if (xMan.getRawButton(1) == true) {
-			armMotor.set(startAngle);
+			currentArmAngle = startAngle;
 		} else if (xMan.getRawButton(2) == true) {
-			armMotor.set(drawbridgeAngle);
+			currentArmAngle = drawbridgeAngle;
 		} else if (xMan.getRawButton(3) == true) {
-			armMotor.set(collectorAngle);
+			currentArmAngle = collectorAngle;
 		} else if (xMan.getRawButton(4) == true) {
-			armMotor.set(portcullisAngle);
+			currentArmAngle = portcullisAngle;
 		}
+
+		armMotor.set(currentArmAngle);
 
 		// Move armstrong up and down manually
 
 		// missing code
+
+		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
 	}
 
+
 	/* Joystick Method to Collect Boulders */
+	public void eaterSpitter() {
+
+	}
 
 	/* Joystick Method to Spit Boulders into Low Goal */
 
@@ -148,7 +156,7 @@ public class HkBot extends SampleRobot {
 
 	/* Joystick method to adjust angle of Launcher */
 
-	// Encoder drive-train method
+	/* Boulder collector Joystick Method */
 	public void collectLaunch() {
 		double speed = xMan.getRawAxis(1);
 		spitLeft.set(speed);
@@ -166,6 +174,8 @@ public class HkBot extends SampleRobot {
 		return encAngle;
 
 	}
+
+	/* AUTO METHODS */
 
 	/* shoots ball at given speed */
 	public void shootBall(double speed) {
@@ -185,10 +195,6 @@ public class HkBot extends SampleRobot {
 		// move robot
 
 	}
-
-	/* Aim launcher angle based on camera image (JAMESEY, AHMED) */
-
-	/* AUTO METHODS */
 
 	/*
 	 * Method to reach the D, Breach a Drivetrain Def, & Score on Low Goal
@@ -240,8 +246,6 @@ public class HkBot extends SampleRobot {
 		smartDrive.tinkDrive(-speed, -speed);
 	}
 
-	public void eaterSpitter() {
-
-	}
+	/* AUTO Aim launcher angle based on camera image (JAMESEY, AHMED) */
 
 }
