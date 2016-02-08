@@ -1,24 +1,14 @@
 package org.usfirst.frc.team1660.robot;
 
-import java.awt.Image;
-import java.nio.ByteBuffer;
-
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
-//import edu.wpi.first.wpilibj.RobotDrive;
-//import edu.wpi.first.wpilibj.RobotDrive.MotorType;
 import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.vision.USBCamera;
 import edu.wpi.first.wpilibj.DigitalInput;
-
-import java.util.logging.*;
-
-import org.usfirst.frc.team1660.robot.CamImage;
 
 public class HkBot extends SampleRobot {
 
@@ -39,11 +29,9 @@ public class HkBot extends SampleRobot {
 	/* Channels for the Motors */
 
 	CANTalon armMotor = new CANTalon(7);
-	CANTalon spitLeft = new CANTalon(8);
-	CANTalon spitRight = new CANTalon(9);
-	CANTalon dart = new CANTalon(10);
-
-	// RobotDrive tinkoDrive = new RobotDrive(left1, right1);
+	CANTalon launcherLeft = new CANTalon(8);
+	CANTalon launcherRight = new CANTalon(9);
+	Talon strongCollector  = new Talon(0);
 
 	/* Pistons */
 	Relay pusher = new Relay(1);
@@ -51,7 +39,6 @@ public class HkBot extends SampleRobot {
 	Relay extra = new Relay(3);
 
 	/* Sensor Setup */
-
 	DigitalInput armLimiter = new DigitalInput(0);
 
 	/* ArmStrong Angles (DONASHIA) */
@@ -70,14 +57,8 @@ public class HkBot extends SampleRobot {
 	public void RobotInit() {
 
 		armMotor.changeControlMode(TalonControlMode.Position);
-
-		/* Initialize values for the Armstrong */
-		double currentArmAngle = startAngle;
-		// tinkoDrive.setInvertedMotor(MotorType.kFrontLeft, true); // invert
-		// the left side motors
-		// tinkoDrive.setExpiration(0.1);
+		double currentArmAngle = startAngle;  		// Initialize values for the Armstrong
 		// tinkoCam.camInit();
-
 	}
 
 	public void autonomous() {
@@ -93,13 +74,16 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
-			smartDrive.joyTinkDrive();
-			// smartDrive.encValue();
-			armMove();
-			collectLaunch();
-
+			//smartDrive.joyTinkDrive();
+			//smartDrive.encValue();
+			smartDrive.basicTinkDrive();
+			simpleArmstrongMove();
+			simpleCollector();
+			simpleLauncher();
+			//simpleLauncherAngle();
+			
 			ourTable.run();
-
+			//armMove();
 			// tinkoCam.camProcessing();
 			// SmartDashboard.pnjutData(cam0.getImageData(image));
 
@@ -110,18 +94,45 @@ public class HkBot extends SampleRobot {
 
 	}
     	
-	/* TELEOP METHODS */
 
-	/* Arm limit switch */
-	public void armLimit() {
-		if (armLimiter.equals(true)) {
-			armMotor.set(0);
-		}
-		SmartDashboard.putBoolean("Arm Limiter", armLimiter.get());
+/* SIMPLE JOYSTICK METHODS */
+
+	/* Joystick Method to Collect & Spit out Boulders */
+	public void simpleCollector() {
+		double speed = xMan.getRawAxis(1);
+		strongCollector.set(speed);
+		SmartDashboard.putDouble("xMan Axis 1", xMan.getRawAxis(1));
+
 	}
 
-    /*Move ArmStrong with Joystick (DONASHIA)		*/
+	/*Joystick method to move Armstrong up & down manually */
+	public void simpleArmstrongMove(){
+		double speed = xMan.getRawAxis(5);
+		armMotor.set(speed);
+	}
+	
+	/*Joystick method to spin the launcher wheels */
+	public void simpleLauncher(){
+		if(xMan.getRawButton(1) == true){
+			launcherLeft.set(1);
+			launcherRight.set(1);
+		}
+		
+	}
+	
+	/* Joystick method to adjust angle of Launcher */
+	public void simpleLauncherAngle(){
+		if(xMan.getRawButton(2)){
+			
+		}
+		
+	}
 
+	
+	
+/* COMBO JOYSTICK METHODS */
+	
+    /*Move ArmStrong with Joystick (DONASHIA)		*/
 	public void armMove() {
 
 		// Decide which angle to use based on buttons
@@ -144,24 +155,22 @@ public class HkBot extends SampleRobot {
 		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
 	}
 
-
-	/* Joystick Method to Collect Boulders */
-	public void eaterSpitter() {
-
-	}
-
+	
 	/* Joystick Method to Spit Boulders into Low Goal */
 
+	
 	/* Joystick Method to Launch Boulders into High Goal */
 
-	/* Joystick method to adjust angle of Launcher */
 
-	/* Boulder collector Joystick Method */
-	public void collectLaunch() {
-		double speed = xMan.getRawAxis(1);
-		spitLeft.set(speed);
-		spitRight.set(speed);
-		SmartDashboard.putDouble("xMan Axis 1", xMan.getRawAxis(1));
+	
+/* OTHER TELEOP METHODS */
+	
+	/* Arm limit switch */
+	public void armLimit() {
+		if (armLimiter.equals(true)) {
+			armMotor.set(0);
+		}
+		SmartDashboard.putBoolean("Arm Limiter", armLimiter.get());
 	}
 
 	/* Puts Armstong encoder values on SmartDashboard */
@@ -175,16 +184,17 @@ public class HkBot extends SampleRobot {
 
 	}
 
-	/* AUTO METHODS */
+
+/* AUTO METHODS */
 
 	/* shoots ball at given speed */
 	public void shootBall(double speed) {
-		spitLeft.set(speed);
-		spitRight.set(-speed);
+		launcherLeft.set(speed);
+		launcherRight.set(-speed);
 	}
 
 	/* Raise launcher at given speed */
-	public void turnOnActuator(double speed) {
+	/*public void turnOnActuator(double speed) {
 		dart.set(speed);
 	}
 

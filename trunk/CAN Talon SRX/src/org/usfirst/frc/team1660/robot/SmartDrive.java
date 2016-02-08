@@ -16,8 +16,8 @@ public class SmartDrive {
 	CANTalon right3 = new CANTalon(6);
 
 	Joystick xDrive;
-	final int LEFT_AXIS = 1;
-	final int RIGHT_AXIS = 5;
+	double leftAxis = xDrive.getRawAxis(1);
+    double rightAxis = xDrive.getRawAxis(5);
 
 	private int encThreshold = 1400;
 	private int maxEncSpeed = 680;
@@ -37,19 +37,19 @@ public class SmartDrive {
 	/* Driving the robot with Joysticks */
 	public void joyTinkDrive() {
 
-		double leftSpeed = xDrive.getRawAxis(LEFT_AXIS);
-		double rightSpeed = xDrive.getRawAxis(RIGHT_AXIS);
+		double leftSpeed = leftAxis;
+		double rightSpeed = rightAxis;
 
 		tinkDrive(leftSpeed, rightSpeed);
 
 		// Sends the values from the joysticks axis to the dashboard
-		SmartDashboard.putDouble("Left Axis " + LEFT_AXIS, leftSpeed);
-		SmartDashboard.putDouble("Right Axis" + RIGHT_AXIS, rightSpeed);
+		SmartDashboard.putDouble("Left Axis " + leftAxis, leftSpeed);
+		SmartDashboard.putDouble("Right Axis" + rightAxis, rightSpeed);
 
 	}
 
 	/*
-	 * Driving the robot using encoders to adjust for different belt tensionings
+	 * Driving the robot using encoders to adjust for different belt tensioning
 	 */
 	public void tinkDrive(double desiredLeftSpeed, double desiredRightSpeed) {
 
@@ -61,11 +61,11 @@ public class SmartDrive {
 		double checkRightScale = getScaleFactor("right", desiredLeftSpeed, desiredRightSpeed);
 
 		// scale one of the sides down to match the other side
-		if (checkLeftScale < 1.0) {
-			leftScaleFactor = checkLeftScale;
+		if (desiredRightSpeed < desiredLeftSpeed) {
+			leftScaleFactor = 1 - checkLeftScale;
 		}
-		if (checkRightScale < 1.0) {
-			rightScaleFactor = checkRightScale;
+		if (desiredLeftSpeed < desiredRightSpeed) {
+			rightScaleFactor = 1 - checkRightScale;
 		}
 
 		// set the speeds of the motors
@@ -110,9 +110,9 @@ public class SmartDrive {
 
 		double actualRatio;
 		if (side.equals("left")) {
-			actualRatio = (left1.getEncVelocity() - right1.getEncVelocity()) / maxEncSpeed;
+			actualRatio = (left1.getEncVelocity() - right1.getEncVelocity()) / left1.getEncVelocity();
 		} else {
-			actualRatio = (right1.getEncVelocity() - left1.getEncVelocity()) / maxEncSpeed;
+			actualRatio = (right1.getEncVelocity() - left1.getEncVelocity()) / right1.getEncVelocity();
 		}
 
 		SmartDashboard.putDouble("ActualMotorRatio", actualRatio);
@@ -147,8 +147,8 @@ public class SmartDrive {
 		left1.setPID(1.0, 0.0, 0.0);
 		right1.setPID(1.0, 0.0, 0.0);
 
-		left1.set(xDrive.getRawAxis(LEFT_AXIS));
-		right1.set(xDrive.getRawAxis(RIGHT_AXIS));
+		left1.set(leftAxis);
+		right1.set(rightAxis);
 
 	}
 
