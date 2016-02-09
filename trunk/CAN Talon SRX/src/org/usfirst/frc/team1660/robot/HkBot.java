@@ -19,6 +19,27 @@ public class HkBot extends SampleRobot {
 	// Joystick xDrive = new Joystick(0); // created in the SmartMotor class
 	Joystick xMan = new Joystick(1);
 
+	final int A_BUTTON = 1;
+	final int B_BUTTON = 2;
+	final int X_BUTTON = 3;
+	final int Y_BUTTON = 4;
+	final int LB_BUTTON = 5;
+	final int RB_BUTTON = 6;
+	final int BACK_BUTTON = 7;
+	final int START_BUTTON = 8;
+	final int LEFT_JOY_BUTTON = 9;
+	final int RIGHT_JOY_BUTTON = 10;
+	final int LEFT_SIDEWAYS_AXIS = 0;
+	final int LEFT_UP_AXIS = 1;
+	final int LT_AXIS = 2;
+	final int RT_AXIS = 3;
+	final int RIGHT_SIDEWAYS_AXIS = 4;
+	final int RIGHT_UP_AXIS = 5;
+	final int POV_UP = 0;
+	final int POV_LEFT = 90;
+	final int POV_DOWN = 180;
+	final int POV_RIGHT = 270;
+
 	/* Camera Setup */
 	// CamImage tinkoCam = new CamImage();
 
@@ -31,11 +52,12 @@ public class HkBot extends SampleRobot {
 	CANTalon armMotor = new CANTalon(7);
 	CANTalon launcherLeft = new CANTalon(8);
 	CANTalon launcherRight = new CANTalon(9);
-	Talon strongCollector  = new Talon(0);
+	Talon strongCollector = new Talon(0);
 
 	/* Pistons */
-	Relay pusher = new Relay(1);
-	Relay compressor = new Relay(2);
+	Relay compressor = new Relay(0);
+	Relay angler = new Relay(1);
+	Relay pusher = new Relay(2);
 	Relay extra = new Relay(3);
 
 	/* Sensor Setup */
@@ -44,20 +66,24 @@ public class HkBot extends SampleRobot {
 	/* ArmStrong Angles (DONASHIA) */
 	double startAngle = 0.0;
 	double drawbridgeAngle = 45.0;
-	double collectorAngle = 90.0;
+	double collectorAngle = 100.0;
 	double portcullisAngle = 115.0;
 	double climbAngle = -15.0;
 	double currentArmAngle = startAngle;
+	int armEncoderRotation = 1400;
 
 	/* Auto Fields */
 	Timer timerAuto = new Timer();
 	double timerA = timerAuto.get();
 
-
 	public void RobotInit() {
 
 		armMotor.changeControlMode(TalonControlMode.Position);
-		double currentArmAngle = startAngle;  		// Initialize values for the Armstrong
+		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+		armMotor.setPID(1.0, 0.0, 0.0);
+		double currentArmAngle = startAngle; // Initialize values for the
+												// Armstrong
+
 		// tinkoCam.camInit();
 	}
 
@@ -74,16 +100,16 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
-			//smartDrive.joyTinkDrive();
-			//smartDrive.encValue();
+			// smartDrive.joyTinkDrive();
+			// smartDrive.encValue();
 			smartDrive.basicTinkDrive();
 			simpleArmstrongMove();
 			simpleCollector();
 			simpleLauncher();
-			//simpleLauncherAngle();
-			
+			// simpleLauncherAngle();
+
 			ourTable.run();
-			//armMove();
+			// armMove();
 			// tinkoCam.camProcessing();
 			// SmartDashboard.pnjutData(cam0.getImageData(image));
 
@@ -93,78 +119,83 @@ public class HkBot extends SampleRobot {
 		// tinkoCam.camKill();
 
 	}
-    	
 
-/* SIMPLE JOYSTICK METHODS */
+	/* SIMPLE JOYSTICK METHODS */
 
 	/* Joystick Method to Collect & Spit out Boulders */
 	public void simpleCollector() {
-		double speed = xMan.getRawAxis(1);
+		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
 		strongCollector.set(speed);
-		SmartDashboard.putDouble("xMan Axis 1", xMan.getRawAxis(1));
+		SmartDashboard.putDouble("xMan LeftUpAxis",
+				xMan.getRawAxis(LEFT_UP_AXIS));
 
 	}
 
-	/*Joystick method to move Armstrong up & down manually */
-	public void simpleArmstrongMove(){
-		double speed = xMan.getRawAxis(5);
+	/* Joystick method to move Armstrong up & down manually */
+	public void simpleArmstrongMove() {
+		double speed = xMan.getRawAxis(RIGHT_UP_AXIS);
 		armMotor.set(speed);
 	}
-	
-	/*Joystick method to spin the launcher wheels */
-	public void simpleLauncher(){
-		if(xMan.getRawButton(1) == true){
-			launcherLeft.set(1);
-			launcherRight.set(1);
+
+	/* Joystick method to spin the launcher wheels */
+	public void simpleLauncher() {
+		if (xMan.getRawButton(Y_BUTTON) == true) {
+			launcherLeft.set(-1.0);
+			launcherRight.set(1.0);
+		} else if (xMan.getRawButton(X_BUTTON) == true) {
+			launcherLeft.set(1.0);
+			launcherRight.set(-1.0);
+		} else {
+			launcherLeft.set(0.0);
+			launcherRight.set(0.0);
 		}
-		
-	}
-	
-	/* Joystick method to adjust angle of Launcher */
-	public void simpleLauncherAngle(){
-		if(xMan.getRawButton(2)){
-			
-		}
-		
 	}
 
-	
-	
-/* COMBO JOYSTICK METHODS */
-	
-    /*Move ArmStrong with Joystick (DONASHIA)		*/
+	/* Joystick method to adjust angle of Launcher */
+	public void simpleLauncherAngle() {
+		if (xMan.getRawButton(2)) {
+
+		}
+
+	}
+
+	/* COMBO JOYSTICK METHODS */
+
+	/* Move ArmStrong with Joystick (DONASHIA) */
 	public void armMove() {
 
+		armZero();
+		
 		// Decide which angle to use based on buttons
-		if (xMan.getRawButton(1) == true) {
+		if (xMan.getPOV() == POV_UP) {
 			currentArmAngle = startAngle;
-		} else if (xMan.getRawButton(2) == true) {
+		} else if (xMan.getPOV() == POV_RIGHT) {
 			currentArmAngle = drawbridgeAngle;
-		} else if (xMan.getRawButton(3) == true) {
+		} else if (xMan.getPOV() == POV_LEFT) {
 			currentArmAngle = collectorAngle;
-		} else if (xMan.getRawButton(4) == true) {
+		} else if (xMan.getPOV() == POV_DOWN) {
 			currentArmAngle = portcullisAngle;
 		}
 
-		armMotor.set(currentArmAngle);
-
-		// Move armstrong up and down manually
-
-		// missing code
+		armMotor.set(currentArmAngle * armEncoderRotation / 360);
 
 		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
 	}
 
-	
+	/* Zero Armstrong to starting position with limit switch */
+	public void armZero() {
+		if (armLimiter.get() == true) {
+			armMotor.setPosition(0.0);
+			currentArmAngle = startAngle;
+		}
+	}
+
 	/* Joystick Method to Spit Boulders into Low Goal */
 
-	
 	/* Joystick Method to Launch Boulders into High Goal */
 
+	/* OTHER TELEOP METHODS */
 
-	
-/* OTHER TELEOP METHODS */
-	
 	/* Arm limit switch */
 	public void armLimit() {
 		if (armLimiter.equals(true)) {
@@ -184,8 +215,7 @@ public class HkBot extends SampleRobot {
 
 	}
 
-
-/* AUTO METHODS */
+	/* AUTO METHODS */
 
 	/* shoots ball at given speed */
 	public void shootBall(double speed) {
@@ -194,11 +224,11 @@ public class HkBot extends SampleRobot {
 	}
 
 	/* Raise launcher at given speed */
-	/*public void turnOnActuator(double speed) {
-		dart.set(speed);
-	}
-
-	/* Aim robot yaw based on camera image (JAMESEY, AHMED) */
+	/*
+	 * public void turnOnActuator(double speed) { dart.set(speed); }
+	 * 
+	 * /* Aim robot yaw based on camera image (JAMESEY, AHMED)
+	 */
 	public void aimRobotYaw(CamImage image) {
 		// determine how to move robot based on image
 

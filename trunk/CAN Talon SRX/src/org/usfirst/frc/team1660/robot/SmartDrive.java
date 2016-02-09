@@ -147,8 +147,8 @@ public class SmartDrive {
 		left1.setPID(1.0, 0.0, 0.0);
 		right1.setPID(1.0, 0.0, 0.0);
 
-		left1.set(leftAxis);
-		right1.set(rightAxis);
+		left1.set(xDrive.getRawAxis(1));
+		right1.set(-xDrive.getRawAxis(5));
 
 	}
 
