@@ -13,17 +13,21 @@ import com.ni.vision.NIVision.DrawMode;
 import com.ni.vision.NIVision.Image;
 import com.ni.vision.NIVision.ShapeMode;
 
-
 public class CamImage {
 
 	//FIELDS//
-	static USBCamera usbCam = new USBCamera();
+
+	static CameraServer camInspection = CameraServer.getInstance();
+	static USBCamera jamesey = new USBCamera ("cam1");
+	
+	
+	
 	static Timer timerA = new Timer();
 	static double timerB = timerA.get();
 	int session;
 	Image frame;
     
-	//raw image array
+	//raw image arra
 
 	//centerX value of target (col)
 
@@ -36,15 +40,17 @@ public class CamImage {
 	//METHODS//
 	// (1) Initialization Method for all pre-match functions
 	public void camInit(){
+		camInspection.setQuality(50); 
+		camInspection.startAutomaticCapture(jamesey);
+		
+		//usbCam.startCapture();
 
-		usbCam.startCapture();
-
-		frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
+		//frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
 
 		// the camera name (ex "cam0") can be found through the roborio web interface
-		session = NIVision.IMAQdxOpenCamera("cam0",
-				NIVision.IMAQdxCameraControlMode.CameraControlModeController);
-		NIVision.IMAQdxConfigureGrab(session);
+		//session = NIVision.IMAQdxOpenCamera("cam0",
+				//NIVision.IMAQdxCameraControlMode.CameraControlModeController);
+		//NIVision.IMAQdxConfigureGrab(session);
 
 
 	}
@@ -57,14 +63,14 @@ public class CamImage {
 		 * grab an image, draw the circle, and provide it for the camera server
 		 * which will in turn send it to the dashboard.
 		 */
-		NIVision.Rect rect = new NIVision.Rect(10, 10, 100, 100);
+	/*	NIVision.Rect rect = new NIVision.Rect(10, 10, 100, 100);
 
 
 		NIVision.IMAQdxGrab(session, frame, 1);
 		NIVision.imaqDrawShapeOnImage(frame, frame, rect,
 				DrawMode.DRAW_VALUE, ShapeMode.SHAPE_OVAL, 0.0f);
-
-		CameraServer.getInstance().setImage(frame);
+*/
+		//CameraServer.getInstance().setImage(frame);
 
 		/** robot code here! **/
 		Timer.delay(0.005);		// wait for a motor update time
@@ -80,8 +86,8 @@ public class CamImage {
 
 	// (3) Kill the camera
 	public void camKill(){
-		usbCam.stopCapture();
-		NIVision.IMAQdxStopAcquisition(session);
+		//camInspection.stopCapture();
+		//NIVision.IMAQdxStopAcquisition(session);
 
 	}
 

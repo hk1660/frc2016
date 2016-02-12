@@ -84,6 +84,9 @@ public class HkBot extends SampleRobot {
 		double currentArmAngle = startAngle; // Initialize values for the
 												// Armstrong
 
+		CamImage exime = new CamImage();
+		exime.camInit();
+		
 		// tinkoCam.camInit();
 	}
 
