@@ -6,28 +6,39 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.NamedSendable;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.image.NIVisionException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.vision.AxisCamera;
+
+import javax.print.attribute.ResolutionSyntax;
 
 import com.ni.vision.NIVision;
 import com.ni.vision.NIVision.DrawMode;
 import com.ni.vision.NIVision.Image;
 import com.ni.vision.NIVision.ShapeMode;
 
+
+
+
 public class CamImage {
+	
 
 	//FIELDS//
-
-	static CameraServer camInspection = CameraServer.getInstance();
-	static USBCamera jamesey = new USBCamera ("cam1");
+	String camIP = "10.16.60.11";
+    AxisCamera.Resolution tankRes;
+	AxisCamera tankCam = new AxisCamera(camIP);
+	//static CameraServer camInspection = CameraServer.getInstance();
+	//static USBCamera jamesey = new USBCamera ("cam0");
 	
 	
-	
+	/*
 	static Timer timerA = new Timer();
 	static double timerB = timerA.get();
 	int session;
 	Image frame;
-    
-	//raw image arra
+    */
+	
+	//raw image array
 
 	//centerX value of target (col)
 
@@ -40,8 +51,9 @@ public class CamImage {
 	//METHODS//
 	// (1) Initialization Method for all pre-match functions
 	public void camInit(){
-		camInspection.setQuality(50); 
-		camInspection.startAutomaticCapture(jamesey);
+		tankCam.writeResolution(AxisCamera.Resolution.k640x480);
+		//camInspection.setQuality(50); 
+		//camInspection.startAutomaticCapture(camIP);
 		
 		//usbCam.startCapture();
 
@@ -56,7 +68,8 @@ public class CamImage {
 	}
 
 	// (2) Overall Processing Method to be called by Robot.java
-	public void camProcessing(){
+	public void camProcessing() throws NIVisionException{
+		SmartDashboard.putData((NamedSendable) tankCam.getImage());
 		//NIVision.IMAQdxStartAcquisition(session);
 
 		/**
