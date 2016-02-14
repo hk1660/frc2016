@@ -2,9 +2,12 @@ package org.usfirst.frc.team1660.robot;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -12,13 +15,13 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 public class HkBot extends SampleRobot {
 
-	SmartDrive smartDrive;
+	/* Camera Setup */
+	CamImage exime = new CamImage();
 	NetworkTablesBridge ourTable = new NetworkTablesBridge();
 
 	/* Joystick Setup */
 	// Joystick xDrive = new Joystick(0); // created in the SmartMotor class
 	Joystick xMan = new Joystick(1);
-
 	final int A_BUTTON = 1;
 	final int B_BUTTON = 2;
 	final int X_BUTTON = 3;
@@ -40,54 +43,53 @@ public class HkBot extends SampleRobot {
 	final int POV_DOWN = 180;
 	final int POV_RIGHT = 270;
 
-	/* Camera Setup */
-	// CamImage tinkoCam = new CamImage();
-
-	int session;
-	// USBCamera cam0 = new USBCamera();
-	// NetworkTablesBridge table;
-	// ByteBuffer image;
 	/* Channels for the Motors */
-
+	SmartDrive smartDrive;
 	CANTalon armMotor = new CANTalon(7);
 	CANTalon launcherLeft = new CANTalon(8);
 	CANTalon launcherRight = new CANTalon(9);
 	Talon strongCollector = new Talon(0);
 
-	/* Pistons */
-	Relay compressor = new Relay(0);
-	Relay angler = new Relay(1);
-	Relay pusher = new Relay(2);
-	Relay extra = new Relay(3);
+	/* Pneumatics */
+	Compressor c = new Compressor();
+	DoubleSolenoid angler = new DoubleSolenoid(0,1);
+	DoubleSolenoid pusher = new DoubleSolenoid(2,3);
+	DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
+	
+	//Relay compressor = new Relay(0);
+	//Relay angler = new Relay(1);
+	//Relay pusher = new Relay(2);
+	//Relay sallyPortHook = new Relay(3);
 
 	/* Sensor Setup */
-	DigitalInput armLimiter = new DigitalInput(0);
-
+	DigitalInput armLimiterFloor = new DigitalInput(0);
+	DigitalInput armLimiterBack = new DigitalInput(1);
+	
 	/* ArmStrong Angles (DONASHIA) */
-	double startAngle = 0.0;
-	double drawbridgeAngle = 45.0;
-	double collectorAngle = 100.0;
-	double portcullisAngle = 115.0;
-	double climbAngle = -15.0;
-	double currentArmAngle = startAngle;
+	int ENC_SCALE = 100; 					//scale from degrees to armstrong encoder bips
+	double startAngleValue = 0.0 * ENC_SCALE;
+	double drawbridgeAngleValue = 45.0 * ENC_SCALE;
+	double collectorAngleValue = 100.0 * ENC_SCALE;
+	double portcullisAngleValue = 115.0 * ENC_SCALE;
+	double desiredAngleValue = startAngleValue;
 	int armEncoderRotation = 1400;
 
-	/* Auto Fields */
+	/* Timers */
 	Timer timerAuto = new Timer();
 	double timerA = timerAuto.get();
+	Timer timerSpit = new Timer();
 
+
+	
+/* 3 MAIN ROBOT METHODS */
 	public void RobotInit() {
 
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.0, 0.0, 0.0);
-		double currentArmAngle = startAngle; // Initialize values for the
-												// Armstrong
-
-		CamImage exime = new CamImage();
-		exime.camInit();
+		double desiredAngleValue = startAngleValue; // Initialize values for the Armstrong
 		
-		// tinkoCam.camInit();
+		exime.camInit();
 	}
 
 	public void autonomous() {
@@ -103,134 +105,266 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
+			checkCompressor();
+			
+			basicTinkDrive();
 			// smartDrive.joyTinkDrive();
-			// smartDrive.encValue();
-			smartDrive.basicTinkDrive();
+			// smartDrive.basicTinkDrive();
+			
 			simpleArmstrongMove();
-			simpleCollector();
-			simpleLauncher();
-			// simpleLauncherAngle();
-
-			ourTable.run();
 			// armMove();
-			// tinkoCam.camProcessing();
-			// SmartDashboard.pnjutData(cam0.getImageData(image));
 
+			//simpleCollector();
+			comboCollector();
+			
+			simpleLauncherWheels();
+			lowGoalSpit();
+			
+			// simpleLauncherAngle();
+			//highGoalLaunch();
+			
+			ourTable.run();
+			
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
 		}
 
-		// tinkoCam.camKill();
-
 	}
 
-	/* SIMPLE JOYSTICK METHODS */
 
-	/* Joystick Method to Collect & Spit out Boulders */
-	public void simpleCollector() {
+	
+/* COMBO JOYSTICK METHODS */
+
+	/*Collector method that spins collector and motor wheels in simultaneously
+	 */
+	public void comboCollector() {
 		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
 		strongCollector.set(speed);
-		SmartDashboard.putDouble("xMan LeftUpAxis",
-				xMan.getRawAxis(LEFT_UP_AXIS));
-
+		launcherLeft.set(speed);
+		launcherRight.set(speed);
+		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
 	}
-
-	/* Joystick method to move Armstrong up & down manually */
-	public void simpleArmstrongMove() {
-		double speed = xMan.getRawAxis(RIGHT_UP_AXIS);
-		armMotor.set(speed);
-	}
-
-	/* Joystick method to spin the launcher wheels */
-	public void simpleLauncher() {
-		if (xMan.getRawButton(Y_BUTTON) == true) {
-			launcherLeft.set(-1.0);
-			launcherRight.set(1.0);
-		} else if (xMan.getRawButton(X_BUTTON) == true) {
-			launcherLeft.set(1.0);
-			launcherRight.set(-1.0);
-		} else {
-			launcherLeft.set(0.0);
-			launcherRight.set(0.0);
-		}
-	}
-
-	/* Joystick method to adjust angle of Launcher */
-	public void simpleLauncherAngle() {
-		if (xMan.getRawButton(2)) {
-
-		}
-
-	}
-
-	/* COMBO JOYSTICK METHODS */
-
+	
 	/* Move ArmStrong with Joystick (DONASHIA) */
 	public void armMove() {
 
-		armZero();
+		boolean armLimitFloor = armLimiterFloor.get();
+		boolean armLimitBack = armLimiterBack.get();
 		
-		// Decide which angle to use based on buttons
-		if (xMan.getPOV() == POV_UP) {
-			currentArmAngle = startAngle;
-		} else if (xMan.getPOV() == POV_RIGHT) {
-			currentArmAngle = drawbridgeAngle;
-		} else if (xMan.getPOV() == POV_LEFT) {
-			currentArmAngle = collectorAngle;
-		} else if (xMan.getPOV() == POV_DOWN) {
-			currentArmAngle = portcullisAngle;
-		}
-
-		armMotor.set(currentArmAngle * armEncoderRotation / 360);
-
-		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
-	}
-
-	/* Zero Armstrong to starting position with limit switch */
-	public void armZero() {
-		if (armLimiter.get() == true) {
+		//Check if a limit swith is hit before moving
+		if (armLimitFloor == true) {
 			armMotor.setPosition(0.0);
-			currentArmAngle = startAngle;
-		}
-	}
+			armMotor.set(0.0);
+			SmartDashboard.putString("Arm Moving?", "Zeroed at Floor!");
+			
+		} else if(armLimitBack == true){
+			armMotor.set(armMotor.getPosition());
+			SmartDashboard.putString("Arm Moving?", "STOP at Back!");
+			
+		} else {
 
+			// Decide which angle to use based on buttons
+			if (xMan.getPOV() == POV_UP) {
+				desiredAngleValue = startAngleValue;
+			} else if (xMan.getPOV() == POV_RIGHT) {
+				desiredAngleValue = drawbridgeAngleValue;
+			} else if (xMan.getPOV() == POV_LEFT) {
+				desiredAngleValue = collectorAngleValue;
+			} else if (xMan.getPOV() == POV_DOWN) {
+				desiredAngleValue = portcullisAngleValue;
+			}
+
+			//move arm
+			armMotor.set(desiredAngleValue);
+		}
+		
+		SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
+		SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
+		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
+		SmartDashboard.putNumber("desired enc angle Value", desiredAngleValue);
+	}
+	
+	
 	/* Joystick Method to Spit Boulders into Low Goal */
+	public void lowGoalSpit() {
 
-	/* Joystick Method to Launch Boulders into High Goal */
-
-	/* OTHER TELEOP METHODS */
-
-	/* Arm limit switch */
-	public void armLimit() {
-		if (armLimiter.equals(true)) {
-			armMotor.set(0);
+		//timerSpit.start();		//needed?
+		boolean timeFlag = false;
+		
+		if (xMan.getRawAxis(LT_AXIS) > 0.5) {
+			
+			//run right away
+			if(timeFlag == false){
+				armMotor.set(drawbridgeAngleValue);		// raise the armstrong out of the way
+				lowerLauncher();						// angle launcher down
+				launchWheels(1.0);						// start spinning the launcher wheels out
+				timeFlag = true;						//flip the flag				
+				timerSpit.reset();						//reset the clock to 0				
+			}
+			//wait for wheels to speed up to push ball
+			if(timerSpit.get() > 0.5){				
+				launchTrigger();						// trig boulder forward	
+				timeFlag = false;						//flip the flag back
+			}
 		}
-		SmartDashboard.putBoolean("Arm Limiter", armLimiter.get());
 	}
 
-	/* Puts Armstong encoder values on SmartDashboard */
+	
+	/* Joystick Method to Launch Boulders into High Goal */
+	public void highGoalLaunch(){
+		
+	}
+
+	
+	
+/* UTILITY METHODS    */
+	
+	/* Puts Armstrong encoder values on SmartDashboard */
 	public int encConvert(double userAngle) {
 
 		int encAngle = 0;
 		int ninety = 1000; // Get value from a test
 		encAngle = (int) ((ninety / 90) * userAngle);
-		SmartDashboard.putInt("Arm Value", armMotor.getEncPosition());
+		SmartDashboard.putInt("Arm Value", encAngle);
 		return encAngle;
 
 	}
 
-	/* AUTO METHODS */
+	/* Turn Compressor on & off with Pressure Switch */
+	public void checkCompressor(){
+		
+		//c.getPressureSwitchValue();
+		
 
-	/* shoots ball at given speed */
-	public void shootBall(double speed) {
+		
+		
+	}
+
+		
+	
+/* SIMPLE JOYSTICK METHODS */
+
+	/* basic PID control for left & right side of drivetrain
+	 * 
+	 */
+	public void basicTinkDrive() {
+		Joystick xDrive = new Joystick(0); // created in the SmartMotor class
+		
+		CANTalon left1 = new CANTalon(1);
+		CANTalon left2 = new CANTalon(2);
+		CANTalon left3 = new CANTalon(3);
+		CANTalon right1 = new CANTalon(4);
+		CANTalon right2 = new CANTalon(5);
+		CANTalon right3 = new CANTalon(6);
+		
+		left1.changeControlMode(CANTalon.TalonControlMode.Speed);
+		right1.changeControlMode(CANTalon.TalonControlMode.Speed);
+		left1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+		right1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+		left1.setPID(1.0, 0.0, 0.0);
+		right1.setPID(1.0, 0.0, 0.0);
+
+		left2.changeControlMode(TalonControlMode.Follower);
+		left2.set(1);
+		left3.changeControlMode(TalonControlMode.Follower);
+		left3.set(1);
+		right2.changeControlMode(TalonControlMode.Follower);
+		right2.set(4);
+		right3.changeControlMode(TalonControlMode.Follower);
+		right3.set(4);		
+		
+		double leftAxis = xDrive.getRawAxis(LEFT_UP_AXIS);
+	    double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
+
+		left1.set(leftAxis);
+		right1.set(rightAxis);
+
+	}
+	
+
+	/* Joystick Method to Collect & Spit out Boulders */
+	public void simpleCollector() {
+		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
+		strongCollector.set(speed);
+		SmartDashboard.putDouble("xMan LeftUpAxis",	speed);
+	}
+
+	/* Joystick method to move Armstrong up & down manually */
+	public void simpleArmstrongMove() {
+		
+		armMotor.changeControlMode(TalonControlMode.PercentVbus);		//go to default control mode
+		double speed = xMan.getRawAxis(RIGHT_UP_AXIS);
+		boolean armLimitFloor = armLimiterFloor.get();
+		boolean armLimitBack = armLimiterBack.get();
+		SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
+		SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
+		
+		if (armLimitFloor == true || armLimitBack == true){
+			armMotor.set(0.0);
+			SmartDashboard.putString("Arm Moving?", "STOP!");
+		} else {
+			armMotor.set(speed);
+			SmartDashboard.putString("Arm Moving?", "Going...");
+		}
+
+	}
+
+	/* Joystick method to spin the launcher wheels */
+	public void simpleLauncherWheels() {
+		if (xMan.getRawButton(X_BUTTON) == true) {
+			launchWheels(1.0);
+		} else if (xMan.getRawButton(Y_BUTTON) == true) {
+			launchWheels(-1.0);
+		} else {
+			launchWheels(0.0);		}
+	}
+	
+	/* Joystick method to trigger the launcher*/
+	public void simpleLauncherTrigger() {
+		
+		
+		
+	}
+
+	/* Joystick method to adjust angle of Launcher */
+	public void simpleLauncherAngle() {
+		if (xMan.getRawButton(RB_BUTTON)) {
+			raiseLauncher();
+		} else if (xMan.getRawAxis(RT_AXIS) > 0.5){
+			lowerLauncher();
+		}
+	}
+
+
+/* AUTO METHODS */
+
+	/* shoots boulder at given speed */
+	public void launchWheels(double speed) {
 		launcherLeft.set(speed);
 		launcherRight.set(-speed);
 	}
-
-	/* Raise launcher at given speed */
-	/*
-	 * public void turnOnActuator(double speed) { dart.set(speed); }
-	 * 
-	 * /* Aim robot yaw based on camera image (JAMESEY, AHMED)
+	
+	/* pushes boulder towards wheels */
+	public void launchTrigger(){
+		
+	}
+	
+	/* retracts pistons */
+	public void launchRetract(){
+		
+		
+	}
+	
+	/* Raise launcher */
+	public void raiseLauncher() { 
+		angler.set(DoubleSolenoid.Value.kForward);
+	 }
+	
+	/* Lower launcher */
+	public void lowerLauncher(){
+		angler.set(DoubleSolenoid.Value.kReverse);
+	}
+	 
+	 /* Aim robot yaw based on camera image (JAMESEY, AHMED)
 	 */
 	public void aimRobotYaw(CamImage image) {
 		// determine how to move robot based on image
@@ -239,9 +373,28 @@ public class HkBot extends SampleRobot {
 
 	}
 
-	/*
-	 * Method to reach the D, Breach a Drivetrain Def, & Score on Low Goal
-	 * (ADONIS)
+	/* AUTO Go forward (ADONIS) */
+	public void goForward(double speed) {
+		smartDrive.tinkDrive(speed, speed);
+	}
+
+	/* AUTO Turn right (ADONIS) */
+	public void turnRight(double speed) {
+		smartDrive.tinkDrive(speed, -speed);
+	}
+
+	/* AUTO Turn left (ADONIS) */
+	public void turnLeft(double speed) {
+		smartDrive.tinkDrive(-speed, speed);
+	}//luka was here
+
+	/* AUTO go backwards (ADONIS) */
+	public void goBackward(double speed) {
+		smartDrive.tinkDrive(-speed, -speed);
+	}
+	
+	/* Method to reach the D, Breach a Drivetrain Def, & 
+	 * Score on Low Goal (ADONIS)
 	 */
 	private void reachBreachScore() {
 
@@ -256,7 +409,7 @@ public class HkBot extends SampleRobot {
 			goForward(1.0);
 		}
 
-		// aim generally towards goal (based on gyro)
+		// aim generally towards goal (based on time)
 
 		// aim precisely at goal (based on camera)
 
@@ -268,27 +421,5 @@ public class HkBot extends SampleRobot {
 
 	}
 
-	/* AUTO Go forward (ADONIS) */
-	public void goForward(double speed) {
-
-		smartDrive.tinkDrive(speed, speed);
-	}
-
-	/* AUTO Turn right (ADONIS) */
-	public void turnRight(double speed) {
-		smartDrive.tinkDrive(speed, -speed);
-	}
-
-	/* AUTO Turn left (ADONIS) */
-	public void turnLeft(double speed) {
-		smartDrive.tinkDrive(-speed, speed);
-	}
-
-	/* AUTO go backwards (ADONIS) */
-	public void goBackward(double speed) {
-		smartDrive.tinkDrive(-speed, -speed);
-	}
-
-	/* AUTO Aim launcher angle based on camera image (JAMESEY, AHMED) */
 
 }

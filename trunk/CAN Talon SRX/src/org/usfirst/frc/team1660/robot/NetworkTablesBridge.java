@@ -16,8 +16,7 @@ public class NetworkTablesBridge {
 	{
 		//NetworkTable.setClientMode();
 		//NetworkTable.setIPAddress("10.16.60.67");
-		
-		NetworkTable table = NetworkTable.getTable("datatable");
+		NetworkTable table = NetworkTable.getTable("myContoursReport");
 /*
 		try {
 			Thread.sleep(1000);
