@@ -18,14 +18,14 @@ public class NetworkTablesBridge {
 		//NetworkTable.setIPAddress("10.16.60.67");
 		
 		NetworkTable table = NetworkTable.getTable("datatable");
-
+/*
 		try {
 			Thread.sleep(1000);
 
 		} catch (Exception e) {
 			System.out.println("Yo yo yo");
 		}
-
+*/
 		double x = table.getNumber("centerX", 0.0);
 		double y = table.getNumber("centerY", 0.0);
 		double width = table.getNumber("width", 0.0);

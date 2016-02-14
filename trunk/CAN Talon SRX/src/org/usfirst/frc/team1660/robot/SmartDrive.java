@@ -15,12 +15,11 @@ public class SmartDrive {
 	CANTalon right2 = new CANTalon(5);
 	CANTalon right3 = new CANTalon(6);
 
-	Joystick xDrive;
+	Joystick xDrive = new Joystick(0);
 	double leftAxis = xDrive.getRawAxis(1);
     double rightAxis = xDrive.getRawAxis(5);
-
-	private int encThreshold = 1400;
-	private int maxEncSpeed = 680;
+    
+    int encThreshold = 1400;
 
 	public SmartDrive() { // constructor
 		left2.changeControlMode(TalonControlMode.Follower);
@@ -67,6 +66,7 @@ public class SmartDrive {
 		if (desiredLeftSpeed < desiredRightSpeed) {
 			rightScaleFactor = 1 - checkRightScale;
 		}
+		
 
 		// set the speeds of the motors
 		left1.set(-desiredLeftSpeed * leftScaleFactor);
@@ -124,16 +124,21 @@ public class SmartDrive {
 
 	/* Set P values of control loop */
 	public void encValue() {
-		SmartDashboard.putInt("leftEnc", left1.getEncPosition());
-		SmartDashboard.putInt("rightEnc", right1.getEncPosition());
-		if (left1.getEncPosition() - right1.getEncPosition() >= encThreshold) {
+		
+		int leftEnc = left1.getEncPosition();
+		int rightEnc = right1.getEncPosition();
+		
+		if (leftEnc - rightEnc >= encThreshold) {
 			left1.setP(0.6);
 		}
 
-		if (right1.getEncPosition() - left1.getEncPosition() >= encThreshold) {
+		if (rightEnc - leftEnc >= encThreshold) {
 			right1.setP(0.6);
 
-		}
+		}		
+		SmartDashboard.putInt("leftEnc", leftEnc);
+		SmartDashboard.putInt("rightEnc", rightEnc);
+
 	}
 
 
@@ -147,8 +152,8 @@ public class SmartDrive {
 		left1.setPID(1.0, 0.0, 0.0);
 		right1.setPID(1.0, 0.0, 0.0);
 
-		left1.set(xDrive.getRawAxis(1));
-		right1.set(-xDrive.getRawAxis(5));
+		left1.set(leftAxis);
+		right1.set(-rightAxis);
 
 	}
 
