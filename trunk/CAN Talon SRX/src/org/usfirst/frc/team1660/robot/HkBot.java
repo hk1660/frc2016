@@ -5,9 +5,7 @@ import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -71,7 +69,7 @@ public class HkBot extends SampleRobot {
 	double drawbridgeAngleValue = 45.0 * ENC_SCALE;
 	double collectorAngleValue = 100.0 * ENC_SCALE;
 	double portcullisAngleValue = 115.0 * ENC_SCALE;
-	double desiredAngleValue = startAngleValue;
+	double desiredAngleValue = startAngleValue; 		// Initialize values for the Armstrong
 	int armEncoderRotation = 1400;
 
 	/* Timers */
@@ -87,7 +85,6 @@ public class HkBot extends SampleRobot {
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.0, 0.0, 0.0);
-		double desiredAngleValue = startAngleValue; // Initialize values for the Armstrong
 		
 		exime.camInit();
 	}
