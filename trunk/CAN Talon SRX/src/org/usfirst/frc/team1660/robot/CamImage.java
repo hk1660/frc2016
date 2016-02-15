@@ -25,7 +25,7 @@ public class CamImage {
 
 	//FIELDS//
 	String camIP = "10.16.60.11";
-    AxisCamera.Resolution tankRes;
+    AxisCamera.Resolution tankRes = AxisCamera.Resolution.k640x480;
 	AxisCamera tankCam = new AxisCamera(camIP);
 	//static CameraServer camInspection = CameraServer.getInstance();
 	//static USBCamera jamesey = new USBCamera ("cam0");
@@ -51,7 +51,7 @@ public class CamImage {
 	//METHODS//
 	// (1) Initialization Method for all pre-match functions
 	public void camInit(){
-		tankCam.writeResolution(AxisCamera.Resolution.k640x480);
+		tankCam.writeResolution(tankRes);
 		//camInspection.setQuality(50); 
 		//camInspection.startAutomaticCapture(camIP);
 		
