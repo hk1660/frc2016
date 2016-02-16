@@ -8,6 +8,27 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SmartDrive {
 
+	final int A_BUTTON = 1;
+	final int B_BUTTON = 2;
+	final int X_BUTTON = 3;
+	final int Y_BUTTON = 4;
+	final int LB_BUTTON = 5;
+	final int RB_BUTTON = 6;
+	final int BACK_BUTTON = 7;
+	final int START_BUTTON = 8;
+	final int LEFT_JOY_BUTTON = 9;
+	final int RIGHT_JOY_BUTTON = 10;
+	final int LEFT_SIDEWAYS_AXIS = 0;
+	final int LEFT_UP_AXIS = 1;
+	final int LT_AXIS = 2;
+	final int RT_AXIS = 3;
+	final int RIGHT_SIDEWAYS_AXIS = 4;
+	final int RIGHT_UP_AXIS = 5;
+	final int POV_UP = 0;
+	final int POV_LEFT = 90;
+	final int POV_DOWN = 180;
+	final int POV_RIGHT = 270;
+	
 	CANTalon left1 = new CANTalon(1);
 	CANTalon left2 = new CANTalon(2);
 	CANTalon left3 = new CANTalon(3);
@@ -22,14 +43,8 @@ public class SmartDrive {
     int encThreshold = 1400;
 
 	public SmartDrive() { // constructor
-		left2.changeControlMode(TalonControlMode.Follower);
-		left2.set(1);
-		left3.changeControlMode(TalonControlMode.Follower);
-		left3.set(1);
-		right2.changeControlMode(TalonControlMode.Follower);
-		right2.set(4);
-		right3.changeControlMode(TalonControlMode.Follower);
-		right3.set(4);
+		//basicTinkDrivePID();			
+		basicTinkDriveFollowers();			
 
 	}
 
@@ -143,18 +158,50 @@ public class SmartDrive {
 
 
 	/* Basic drivetrain movement */
-	public void basicTinkDrive() {
+	/* basic PID control for left & right side of drivetrain
+	 * 
+	 */
+public void basicTinkDrivePID(){
+	left1.changeControlMode(CANTalon.TalonControlMode.Speed);
+	right1.changeControlMode(CANTalon.TalonControlMode.Speed);
+	left1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+	right1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+	left1.setPID(1.0, 0.0, 0.0);
+	right1.setPID(1.0, 0.0, 0.0);
 
-		left1.changeControlMode(CANTalon.TalonControlMode.Speed);
-		right1.changeControlMode(CANTalon.TalonControlMode.Speed);
-		left1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		right1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		left1.setPID(1.0, 0.0, 0.0);
-		right1.setPID(1.0, 0.0, 0.0);
 
-		left1.set(leftAxis);
-		right1.set(-rightAxis);
+		
+}
 
-	}
+public void basicTinkDriveFollowers(){
+	left2.changeControlMode(TalonControlMode.Follower);
+	left2.set(1);
+	left3.changeControlMode(TalonControlMode.Follower);
+	left3.set(1);
+	right2.changeControlMode(TalonControlMode.Follower);
+	right2.set(4);
+	right3.changeControlMode(TalonControlMode.Follower);
+	right3.set(4);	
+}
+
+public void basicTinkDrive() {
+	
+	double leftAxis = xDrive.getRawAxis(LEFT_UP_AXIS);
+    double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
+    
+    basicTinkDriveFollowers();
+    
+	left1.set(-leftAxis);
+	right1.set(rightAxis);
+	
+	SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
+	SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
+	SmartDashboard.putDouble("Left Motor Enc Speed", left1.getEncVelocity());
+	SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
+	
+	
+	
+
+}
 
 }

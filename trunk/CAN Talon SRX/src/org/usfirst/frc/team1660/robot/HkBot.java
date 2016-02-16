@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1660.robot;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.Compressor;
@@ -44,7 +45,7 @@ public class HkBot extends SampleRobot {
 	final int POV_RIGHT = 270;
 
 	/* Channels for the Motors */
-	SmartDrive smartDrive;
+	SmartDrive smartDrive = new SmartDrive();
 	CANTalon armMotor = new CANTalon(7);
 	CANTalon launcherLeft = new CANTalon(8);
 	CANTalon launcherRight = new CANTalon(9);
@@ -64,6 +65,9 @@ public class HkBot extends SampleRobot {
 	/* Sensor Setup */
 	DigitalInput armLimiterFloor = new DigitalInput(0);
 	DigitalInput armLimiterBack = new DigitalInput(1);
+	AnalogInput batman = new AnalogInput(0);
+	
+	
 	
 	/* ArmStrong Angles (DONASHIA) */
 	int ENC_SCALE = 100; 					//scale from degrees to armstrong encoder bips
@@ -79,17 +83,34 @@ public class HkBot extends SampleRobot {
 	double timerA = timerAuto.get();
 	Timer timerSpit = new Timer();
 
+	
+	
+
+	Joystick xDrive = new Joystick(0); // created in the SmartMotor class
+	CANTalon left1 = new CANTalon(1);
+	CANTalon left2 = new CANTalon(2);
+	CANTalon left3 = new CANTalon(3);
+	CANTalon right1 = new CANTalon(4);
+	CANTalon right2 = new CANTalon(5);
+	CANTalon right3 = new CANTalon(6);
+
 
 	
 /* 3 MAIN ROBOT METHODS */
 	public void RobotInit() {
+		
 
+		
+		/*
+		
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.0, 0.0, 0.0);
 		double desiredAngleValue = startAngleValue; // Initialize values for the Armstrong
 		
 		exime.camInit();
+		
+		*/
 	}
 
 	public void autonomous() {
@@ -105,12 +126,13 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
-			checkCompressor();
 			
-			basicTinkDrive();
+			SmartDashboard.putDouble("Batman", batman.getVoltage());
+			//checkCompressor();
+		
 			// smartDrive.joyTinkDrive();
-			// smartDrive.basicTinkDrive();
-			
+			smartDrive.basicTinkDrive();
+			/*
 			simpleArmstrongMove();
 			// armMove();
 
@@ -125,7 +147,10 @@ public class HkBot extends SampleRobot {
 			
 			ourTable.run();
 			
+			*/
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
+
+			
 		}
 
 	}
@@ -242,44 +267,6 @@ public class HkBot extends SampleRobot {
 		
 	
 /* SIMPLE JOYSTICK METHODS */
-
-	/* basic PID control for left & right side of drivetrain
-	 * 
-	 */
-	public void basicTinkDrive() {
-		Joystick xDrive = new Joystick(0); // created in the SmartMotor class
-		
-		CANTalon left1 = new CANTalon(1);
-		CANTalon left2 = new CANTalon(2);
-		CANTalon left3 = new CANTalon(3);
-		CANTalon right1 = new CANTalon(4);
-		CANTalon right2 = new CANTalon(5);
-		CANTalon right3 = new CANTalon(6);
-		
-		left1.changeControlMode(CANTalon.TalonControlMode.Speed);
-		right1.changeControlMode(CANTalon.TalonControlMode.Speed);
-		left1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		right1.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		left1.setPID(1.0, 0.0, 0.0);
-		right1.setPID(1.0, 0.0, 0.0);
-
-		left2.changeControlMode(TalonControlMode.Follower);
-		left2.set(1);
-		left3.changeControlMode(TalonControlMode.Follower);
-		left3.set(1);
-		right2.changeControlMode(TalonControlMode.Follower);
-		right2.set(4);
-		right3.changeControlMode(TalonControlMode.Follower);
-		right3.set(4);		
-		
-		double leftAxis = xDrive.getRawAxis(LEFT_UP_AXIS);
-	    double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
-
-		left1.set(leftAxis);
-		right1.set(rightAxis);
-
-	}
-	
 
 	/* Joystick Method to Collect & Spit out Boulders */
 	public void simpleCollector() {
