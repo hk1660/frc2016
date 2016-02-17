@@ -230,17 +230,20 @@ public class HkBot extends SampleRobot {
 
 	/* Turn Compressor on & off with Pressure Switch */
 	public void checkCompressor(){
-
-	   if(c.getClosedLoopControl() == true){
+    //Is it on or not?
+		//get values from the pressure switch
+		
+	   if(c.getPressureSwitchValue() == true){
 		
 		   
 			//Please show on the smartDashboard
 			SmartDashboard.putBoolean("Compressor On", c.getClosedLoopControl());
 			   
 	       }else{
-		   
-			//Something is wrong!
-	    	//"Curses" *Shakes fist at the heavens*
+	       
+		   c.getPressureSwitchValue();
+			//Turn off
+	    	
 	    	SmartDashboard.putBoolean("Compressor Off", c.getClosedLoopControl());
 			
 			
