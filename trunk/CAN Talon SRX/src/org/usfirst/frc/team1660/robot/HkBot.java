@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -52,7 +51,7 @@ public class HkBot extends SampleRobot {
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */
-	Compressor armPress = new Compressor();
+	Compressor c = new Compressor();
 	DoubleSolenoid angler = new DoubleSolenoid(0,1);
 	DoubleSolenoid pusher = new DoubleSolenoid(2,3);
 	DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
@@ -66,8 +65,6 @@ public class HkBot extends SampleRobot {
 	DigitalInput armLimiterFloor = new DigitalInput(0);
 	DigitalInput armLimiterBack = new DigitalInput(1);
 	AnalogInput batman = new AnalogInput(0);
-	
-	
 	
 	/* ArmStrong Angles (DONASHIA) */
 	int ENC_SCALE = 100; 					//scale from degrees to armstrong encoder bips
@@ -83,25 +80,12 @@ public class HkBot extends SampleRobot {
 	double timerA = timerAuto.get();
 	Timer timerSpit = new Timer();
 
-	
-	
-
-	Joystick xDrive = new Joystick(0); // created in the SmartMotor class
-	CANTalon left1 = new CANTalon(1);
-	CANTalon left2 = new CANTalon(2);
-	CANTalon left3 = new CANTalon(3);
-	CANTalon right1 = new CANTalon(4);
-	CANTalon right2 = new CANTalon(5);
-	CANTalon right3 = new CANTalon(6);
-
 
 	
 /* 3 MAIN ROBOT METHODS */
 	public void RobotInit() {
-		
 
-		
-		/*
+		c.setClosedLoopControl(true);
 		
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
@@ -109,8 +93,6 @@ public class HkBot extends SampleRobot {
 		double desiredAngleValue = startAngleValue; // Initialize values for the Armstrong
 		
 		exime.camInit();
-		
-		*/
 	}
 
 	public void autonomous() {
@@ -125,15 +107,12 @@ public class HkBot extends SampleRobot {
 	public void operatorControl() {
 
 		while (isOperatorControl() && isEnabled()) {
-			
 
+			checkCompressor();
 			
-			SmartDashboard.putDouble("Batman", batman.getVoltage());
-			//checkCompressor();
-		
 			// smartDrive.joyTinkDrive();
 			smartDrive.basicTinkDrive();
-			/*
+			
 			simpleArmstrongMove();
 			// armMove();
 
@@ -148,10 +127,7 @@ public class HkBot extends SampleRobot {
 			
 			ourTable.run();
 			
-			*/
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
-
-			
 		}
 
 	}
@@ -260,15 +236,21 @@ public class HkBot extends SampleRobot {
 	}
 
 	/* Turn Compressor on & off with Pressure Switch */
-	public void checkCompressor(){
-		
-		//c.getPressureSwitchValue();
-		
+	public void checkCompressor() {
+		// Is it on or not?
+		// get values from the pressure switch
+		if (c.getPressureSwitchValue() == true) {
 
-		
+			// Please show on the smartDashboard
+			SmartDashboard.putBoolean("Compressor On", c.getClosedLoopControl());
+
+		} else {
+			c.getPressureSwitchValue();
+			// Turn off
+			SmartDashboard.putBoolean("Compressor Off", c.getClosedLoopControl());
+		}
 		
 	}
-
 		
 	
 /* SIMPLE JOYSTICK METHODS */

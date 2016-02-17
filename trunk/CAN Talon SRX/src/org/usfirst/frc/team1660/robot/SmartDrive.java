@@ -184,24 +184,21 @@ public void basicTinkDriveFollowers(){
 	right3.set(4);	
 }
 
-public void basicTinkDrive() {
-	
-	double leftAxis = xDrive.getRawAxis(LEFT_UP_AXIS);
-    double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
-    
-    basicTinkDriveFollowers();
-    
-	left1.set(-leftAxis);
-	right1.set(rightAxis);
-	
-	SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
-	SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
-	SmartDashboard.putDouble("Left Motor Enc Speed", left1.getEncVelocity());
-	SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
-	
-	
-	
+	public void basicTinkDrive() {
 
-}
+		double leftAxis = xDrive.getRawAxis(LEFT_UP_AXIS);
+		double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
+
+		basicTinkDriveFollowers();
+
+		left1.set(-leftAxis);
+		right1.set(rightAxis);
+
+		SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
+		SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
+		SmartDashboard.putDouble("Left Motor Enc Speed", left1.getEncVelocity());
+		SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
+
+	}
 
 }
