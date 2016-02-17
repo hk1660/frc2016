@@ -115,7 +115,7 @@ public class HkBot extends SampleRobot {
 			
 			simpleArmstrongMove();
 			// armMove();
-
+            simpleLauncherTrigger();
 			//simpleCollector();
 			comboCollector();
 			
@@ -144,6 +144,15 @@ public class HkBot extends SampleRobot {
 		launcherLeft.set(speed);
 		launcherRight.set(speed);
 		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
+	}
+	
+	/* angle Launcher with Joystick */ 
+	public void angler(){
+		if (LB_BUTTON==1){
+			
+		}
+		
+		
 	}
 	
 	/* Move ArmStrong with Joystick (DONASHIA) */
@@ -213,7 +222,7 @@ public class HkBot extends SampleRobot {
 			}
 		}
 	}
-
+/* Joystick method to 
 	
 	/* Joystick Method to Launch Boulders into High Goal */
 	public void highGoalLaunch(){
@@ -294,9 +303,14 @@ public class HkBot extends SampleRobot {
 	
 	/* Joystick method to trigger the launcher*/
 	public void simpleLauncherTrigger() {
-		
-		
-		
+		if(xMan.getRawButton(LB_BUTTON)== true){
+			launchTrigger();
+			SmartDashboard.putBoolean("Trigger", true);
+		}
+		else{
+			launchRetract();
+		SmartDashboard.putBoolean("Trigger", false);
+		}
 	}
 
 	/* Joystick method to adjust angle of Launcher */
@@ -319,12 +333,12 @@ public class HkBot extends SampleRobot {
 	
 	/* pushes boulder towards wheels */
 	public void launchTrigger(){
-		
+		pusher.set(DoubleSolenoid.Value.kForward);
 	}
 	
 	/* retracts pistons */
 	public void launchRetract(){
-		
+		pusher.set(DoubleSolenoid.Value.kReverse);
 		
 	}
 	
@@ -394,6 +408,7 @@ public class HkBot extends SampleRobot {
 		// go back to "reach"
 
 	}
+	
 
 
 }
