@@ -87,7 +87,7 @@ public class SmartDrive {
 		left1.set(-desiredLeftSpeed * leftScaleFactor);
 		right1.set(desiredRightSpeed * rightScaleFactor);
 
-	}
+	} 
 
 	/*
 	 * How much should we adjust the motor values based on the joysticks and

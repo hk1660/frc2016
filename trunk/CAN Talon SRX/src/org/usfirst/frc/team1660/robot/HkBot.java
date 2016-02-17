@@ -52,7 +52,7 @@ public class HkBot extends SampleRobot {
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */
-	Compressor c = new Compressor();
+	Compressor armPress = new Compressor();
 	DoubleSolenoid angler = new DoubleSolenoid(0,1);
 	DoubleSolenoid pusher = new DoubleSolenoid(2,3);
 	DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
@@ -125,6 +125,7 @@ public class HkBot extends SampleRobot {
 	public void operatorControl() {
 
 		while (isOperatorControl() && isEnabled()) {
+			
 
 			
 			SmartDashboard.putDouble("Batman", batman.getVoltage());
@@ -187,15 +188,19 @@ public class HkBot extends SampleRobot {
 			
 		} else {
 
-			// Decide which angle to use based on buttons
+			// Decide which angle to use based on buttons (Samuel Gonzalez)
 			if (xMan.getPOV() == POV_UP) {
 				desiredAngleValue = startAngleValue;
+				armMotor.setEncPosition((int) startAngleValue);
 			} else if (xMan.getPOV() == POV_RIGHT) {
 				desiredAngleValue = drawbridgeAngleValue;
+				armMotor.setEncPosition((int) drawbridgeAngleValue);
 			} else if (xMan.getPOV() == POV_LEFT) {
 				desiredAngleValue = collectorAngleValue;
+				armMotor.setEncPosition((int) collectorAngleValue);
 			} else if (xMan.getPOV() == POV_DOWN) {
 				desiredAngleValue = portcullisAngleValue;
+				armMotor.setEncPosition((int) portcullisAngleValue);
 			}
 
 			//move arm
