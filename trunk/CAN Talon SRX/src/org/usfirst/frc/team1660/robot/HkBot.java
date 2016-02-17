@@ -82,6 +82,8 @@ public class HkBot extends SampleRobot {
 /* 3 MAIN ROBOT METHODS */
 	public void RobotInit() {
 
+		c.setClosedLoopControl(true);
+		
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.0, 0.0, 0.0);
@@ -228,10 +230,22 @@ public class HkBot extends SampleRobot {
 
 	/* Turn Compressor on & off with Pressure Switch */
 	public void checkCompressor(){
-		
-		//c.getPressureSwitchValue();
-		
 
+	   if(c.setClosedLoopControl == true){
+		
+		   
+			//Please show on the smartDashboard
+			SmartDashboard.putBoolean("Compressor On", c.getClosedLoopControl());
+			   
+	       }else{
+		   
+			//Something is wrong!
+	    	//"Curses" *Shakes fist at the heavens*
+	    
+			
+			
+			}
+		
 		
 		
 	}
