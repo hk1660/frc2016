@@ -156,15 +156,6 @@ public class HkBot extends SampleRobot {
 		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
 	}
 	
-	/* angle Launcher with Joystick */ 
-	public void angler(){
-		if (LB_BUTTON==1){
-			
-		}
-		
-		
-	}
-	
 	/* Move ArmStrong with Joystick (DONASHIA/ ELIJAH) */
 	public void armMove() {
 
@@ -232,8 +223,7 @@ public class HkBot extends SampleRobot {
 			}
 		}
 	}
-/* Joystick method to 
-	
+
 	/* Joystick Method to Launch Boulders into High Goal */
 	public void highGoalLaunch(){
 		
@@ -352,24 +342,14 @@ public class HkBot extends SampleRobot {
 			launchWheels(0.0);		}
 	}
 	
-	/* Joystick method to trigger the launcher (JATARA) */
+	/* Joystick method to trigger the launcher (JATARA & DARYLE) */
 	public void simpleLauncherTrigger() {
-<<<<<<< HEAD
 		if (xMan.getRawButton(LB_BUTTON) == true) {
 			launchTrigger();
 			SmartDashboard.putBoolean("Trigger", true);
 		} else {
 			launchRetract();
 			SmartDashboard.putBoolean("Trigger", false);
-=======
-		if(xMan.getRawButton(LB_BUTTON)== true){
-			launchTrigger();
-			SmartDashboard.putBoolean("Trigger", true);
-		}
-		else{
-			launchRetract();
-		SmartDashboard.putBoolean("Trigger", false);
->>>>>>> branch 'master' of https://github.com/hk1660/FRC2016
 		}
 	}
 
@@ -399,10 +379,6 @@ public class HkBot extends SampleRobot {
 	/* retracts pistons  (JATARA & DARYLE) */
 	public void launchRetract(){
 		pusher.set(DoubleSolenoid.Value.kReverse);
-<<<<<<< HEAD
-=======
-		
->>>>>>> branch 'master' of https://github.com/hk1660/FRC2016
 	}
 	
 	/* Raise launcher */
