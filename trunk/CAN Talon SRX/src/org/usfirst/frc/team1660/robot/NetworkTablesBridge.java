@@ -1,4 +1,5 @@
 package org.usfirst.frc.team1660.robot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -16,7 +17,17 @@ public class NetworkTablesBridge {
 	{
 		//NetworkTable.setClientMode();
 		//NetworkTable.setIPAddress("10.16.60.67");
-		NetworkTable table = NetworkTable.getTable("myContoursReport");
+		NetworkTable table = NetworkTable.getTable("GRIP/hkContoursReport");
+		double[] defaultValue = new double[0];
+		double[] areas = table.getNumberArray("area", defaultValue);
+		System.out.print("Areas: ");
+		for (double area: areas) {
+			System.out.print(area + " " );
+		}
+		System.out.println();
+		Timer.delay(1);
+		
+		
 /*
 		try {
 			Thread.sleep(1000);
@@ -36,9 +47,6 @@ public class NetworkTablesBridge {
 		SmartDashboard.putDouble("the width value is : ", width);
 		SmartDashboard.putDouble("the area value is : ", area);
 		SmartDashboard.putDouble("the height value is : ", height);
-
-		System.out.println("" + x + " " + y);
-
 		
 	
 	}

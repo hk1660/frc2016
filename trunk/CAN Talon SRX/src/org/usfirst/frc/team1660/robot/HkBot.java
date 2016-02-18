@@ -1,23 +1,26 @@
 package org.usfirst.frc.team1660.robot;
 
-import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Relay;
-import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Talon;
+//import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 
 public class HkBot extends SampleRobot {
 
 	/* Camera Setup */
-	CamImage exime = new CamImage();
-	NetworkTablesBridge ourTable = new NetworkTablesBridge();
+	NetworkTable table = NetworkTable.getTable("GRIP/hkContoursReport");
+	double[] defaultValue = new double[0];
+	//CamImage exime = new CamImage();
+	//NetworkTablesBridge ourTable = new NetworkTablesBridge();
 
 	/* Joystick Setup */
 	// Joystick xDrive = new Joystick(0); // created in the SmartMotor class
@@ -65,13 +68,14 @@ public class HkBot extends SampleRobot {
 	DigitalInput armLimiterFloor = new DigitalInput(0);
 	DigitalInput armLimiterBack = new DigitalInput(1);
 	AnalogInput batman = new AnalogInput(0);
+
 	
 	/* ArmStrong Angles (DONASHIA) */
 	int ENC_SCALE = 100; 					//scale from degrees to armstrong encoder bips
-	double startAngleValue = 0.0 * ENC_SCALE;
+	double startAngleValue = 70.0 * ENC_SCALE;
 	double drawbridgeAngleValue = 45.0 * ENC_SCALE;
-	double collectorAngleValue = 100.0 * ENC_SCALE;
-	double portcullisAngleValue = 115.0 * ENC_SCALE;
+	double collectorAngleValue = 15.0 * ENC_SCALE;
+	double portcullisAngleValue = 0.0 * ENC_SCALE;
 	double desiredAngleValue = startAngleValue;
 	int armEncoderRotation = 1400;
 
@@ -90,9 +94,8 @@ public class HkBot extends SampleRobot {
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.0, 0.0, 0.0);
-		double desiredAngleValue = startAngleValue; // Initialize values for the Armstrong
 		
-		exime.camInit();
+		//exime.camInit();
 	}
 
 	public void autonomous() {
@@ -108,7 +111,11 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
+			jameseyTestCamera();
+			
+/*
 			checkCompressor();
+			checkUltrasonic();
 			
 			// smartDrive.joyTinkDrive();
 			smartDrive.basicTinkDrive();
@@ -125,7 +132,10 @@ public class HkBot extends SampleRobot {
 			// simpleLauncherAngle();
 			//highGoalLaunch();
 			
+			simpleLauncherTrigger();
+			
 			ourTable.run();
+*/
 			
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
 		}
@@ -146,7 +156,7 @@ public class HkBot extends SampleRobot {
 		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
 	}
 	
-	/* Move ArmStrong with Joystick (DONASHIA) */
+	/* Move ArmStrong with Joystick (DONASHIA/ ELIJAH) */
 	public void armMove() {
 
 		boolean armLimitFloor = armLimiterFloor.get();
@@ -167,16 +177,16 @@ public class HkBot extends SampleRobot {
 			// Decide which angle to use based on buttons (Samuel Gonzalez)
 			if (xMan.getPOV() == POV_UP) {
 				desiredAngleValue = startAngleValue;
-				armMotor.setEncPosition((int) startAngleValue);
+				//armMotor.setEncPosition((int) startAngleValue);
 			} else if (xMan.getPOV() == POV_RIGHT) {
 				desiredAngleValue = drawbridgeAngleValue;
-				armMotor.setEncPosition((int) drawbridgeAngleValue);
+				//armMotor.setEncPosition((int) drawbridgeAngleValue);
 			} else if (xMan.getPOV() == POV_LEFT) {
 				desiredAngleValue = collectorAngleValue;
-				armMotor.setEncPosition((int) collectorAngleValue);
+				//armMotor.setEncPosition((int) collectorAngleValue);
 			} else if (xMan.getPOV() == POV_DOWN) {
 				desiredAngleValue = portcullisAngleValue;
-				armMotor.setEncPosition((int) portcullisAngleValue);
+				//armMotor.setEncPosition((int) portcullisAngleValue);
 			}
 
 			//move arm
@@ -251,7 +261,48 @@ public class HkBot extends SampleRobot {
 		}
 		
 	}
+	
+	/*Check Value of Ultrasonic Sensor in Inches */
+	public void checkUltrasonic(){
 		
+		
+	}
+		
+	/*Camera check method */
+	public void jameseyTestCamera(){
+
+		double[] areas = table.getNumberArray("area", defaultValue);
+		System.out.print("Areas: ");
+		for (double area: areas) {
+			System.out.print(area + " " );
+		}
+		System.out.println();
+		//Timer.delay(1);
+		
+		
+/*
+		try {
+			Thread.sleep(1000);
+
+		} catch (Exception e) {
+			System.out.println("Yo yo yo");
+		}
+*/
+		double x = table.getNumber("centerX", 0.0);
+		double y = table.getNumber("centerY", 0.0);
+		double width = table.getNumber("width", 0.0);
+		double area = table.getNumber("area", 0.0);
+		double height = table.getNumber("height", 0.0);
+		
+		SmartDashboard.putDouble("the center x value is : ", x);
+		SmartDashboard.putDouble("the center Y  value is :", y);
+		SmartDashboard.putDouble("the width value is : ", width);
+		SmartDashboard.putDouble("the area value is : ", area);
+		SmartDashboard.putDouble("the height value is : ", height);
+
+		
+	}
+	
 	
 /* SIMPLE JOYSTICK METHODS */
 
@@ -292,11 +343,15 @@ public class HkBot extends SampleRobot {
 			launchWheels(0.0);		}
 	}
 	
-	/* Joystick method to trigger the launcher*/
+	/* Joystick method to trigger the launcher (JATARA) */
 	public void simpleLauncherTrigger() {
-		
-		
-		
+		if (xMan.getRawButton(LB_BUTTON) == true) {
+			launchTrigger();
+			SmartDashboard.putBoolean("Trigger", true);
+		} else {
+			launchRetract();
+			SmartDashboard.putBoolean("Trigger", false);
+		}
 	}
 
 	/* Joystick method to adjust angle of Launcher */
@@ -317,15 +372,14 @@ public class HkBot extends SampleRobot {
 		launcherRight.set(-speed);
 	}
 	
-	/* pushes boulder towards wheels */
+	/* pushes boulder towards wheels (JATARA & DARYLE) */
 	public void launchTrigger(){
-		
+		pusher.set(DoubleSolenoid.Value.kForward);
 	}
 	
-	/* retracts pistons */
+	/* retracts pistons  (JATARA & DARYLE) */
 	public void launchRetract(){
-		
-		
+		pusher.set(DoubleSolenoid.Value.kReverse);
 	}
 	
 	/* Raise launcher */
