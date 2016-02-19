@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1660.robot;
 
 import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
@@ -48,16 +49,21 @@ public class HkBot extends SampleRobot {
 
 	/* Channels for the Motors */
 	SmartDrive smartDrive = new SmartDrive();
-	CANTalon armMotor = new CANTalon(7);
-	CANTalon launcherLeft = new CANTalon(8);
 	CANTalon launcherRight = new CANTalon(9);
+	CANTalon launcherLeft = new CANTalon(8);
+	CANTalon armMotor = new CANTalon(7);
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */
-	Compressor c = new Compressor();
-	DoubleSolenoid angler = new DoubleSolenoid(0,1);
-	DoubleSolenoid pusher = new DoubleSolenoid(2,3);
-	DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
+	//Compressor c = new Compressor(20);
+	
+	//Solenoid angler1 = new Solenoid(0);
+	//Solenoid angler2 = new Solenoid(1);
+	//Solenoid tester = new Solenoid(7);
+	
+	//DoubleSolenoid angler = new DoubleSolenoid(0,1);
+	//DoubleSolenoid pusher = new DoubleSolenoid(2,3);
+	//DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
 	
 	//Relay compressor = new Relay(0);
 	//Relay angler = new Relay(1);
@@ -89,7 +95,7 @@ public class HkBot extends SampleRobot {
 /* 3 MAIN ROBOT METHODS */
 	public void RobotInit() {
 
-		c.setClosedLoopControl(true);
+	//	c.setClosedLoopControl(true);
 		
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
@@ -111,31 +117,35 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
-			jameseyTestCamera();
-			
-/*
-			checkCompressor();
+			//tester.clearAllPCMStickyFaults();
+			//SmartDashboard.putBoolean("Is Blacklisted?", tester.isBlackListed());
+			//SmartDashboard.putBoolean("Volt Stick Fault?", tester.getPCMSolenoidVoltageStickyFault());
+			//SmartDashboard.putString("To String?", tester.toString());			
+			//tester.set(false);
+			//jameseyTestCamera();
+
+		    //checkCompressor();
 			checkUltrasonic();
 			
 			// smartDrive.joyTinkDrive();
 			smartDrive.basicTinkDrive();
 			
 			simpleArmstrongMove();
-			// armMove();
-            simpleLauncherTrigger();
+			 //armMove();
+            
 			//simpleCollector();
 			comboCollector();
 			
 			simpleLauncherWheels();
 			lowGoalSpit();
 			
-			// simpleLauncherAngle();
+			simpleLauncherAngle();
 			//highGoalLaunch();
 			
 			simpleLauncherTrigger();
 			
-			ourTable.run();
-*/
+			//ourTable.run();
+
 			
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
 		}
@@ -243,8 +253,8 @@ public class HkBot extends SampleRobot {
 		return encAngle;
 
 	}
-
-	/* Turn Compressor on & off with Pressure Switch */
+/*
+	// Turn Compressor on & off with Pressure Switch 
 	public void checkCompressor() {
 		// Is it on or not?
 		// get values from the pressure switch
@@ -260,6 +270,7 @@ public class HkBot extends SampleRobot {
 		}
 		
 	}
+*/
 	
 	/*Check Value of Ultrasonic Sensor in Inches */
 	public void checkUltrasonic(){
@@ -346,10 +357,11 @@ public class HkBot extends SampleRobot {
 	public void simpleLauncherTrigger() {
 		if (xMan.getRawButton(LB_BUTTON) == true) {
 			launchTrigger();
-			SmartDashboard.putBoolean("Trigger", true);
+			SmartDashboard.putString("TestingTrigger","LB_launchTrigger");
+
 		} else {
 			launchRetract();
-			SmartDashboard.putBoolean("Trigger", false);
+			SmartDashboard.putString("TestingTrigger","LB_launchRetract");
 		}
 	}
 
@@ -357,7 +369,9 @@ public class HkBot extends SampleRobot {
 	public void simpleLauncherAngle() {
 		if (xMan.getRawButton(RB_BUTTON)) {
 			raiseLauncher();
+			SmartDashboard.putString("TestingSol","RB_raiseLauncher");
 		} else if (xMan.getRawAxis(RT_AXIS) > 0.5){
+			SmartDashboard.putString("TestingSol","RT_lowerLauncher");
 			lowerLauncher();
 		}
 	}
@@ -373,22 +387,25 @@ public class HkBot extends SampleRobot {
 	
 	/* pushes boulder towards wheels (JATARA & DARYLE) */
 	public void launchTrigger(){
-		pusher.set(DoubleSolenoid.Value.kForward);
+		//pusher.set(DoubleSolenoid.Value.kOff);
+
+		//pusher.set(DoubleSolenoid.Value.kForward);
 	}
 	
 	/* retracts pistons  (JATARA & DARYLE) */
 	public void launchRetract(){
-		pusher.set(DoubleSolenoid.Value.kReverse);
+		//pusher.set(DoubleSolenoid.Value.kReverse);
 	}
 	
 	/* Raise launcher */
 	public void raiseLauncher() { 
-		angler.set(DoubleSolenoid.Value.kForward);
-	 }
-	
+		//angler1.set(true);
+		//angler2.set(true);
+	}
 	/* Lower launcher */
 	public void lowerLauncher(){
-		angler.set(DoubleSolenoid.Value.kReverse);
+		//angler1.set(false);
+		//angler2.set(false);
 	}
 	 
 	 /* Aim robot yaw based on camera image (JAMESEY, AHMED)
