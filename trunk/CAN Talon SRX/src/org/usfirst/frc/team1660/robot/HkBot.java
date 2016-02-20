@@ -10,7 +10,10 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 //import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.livewindow.LiveWindowSendable;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -55,11 +58,11 @@ public class HkBot extends SampleRobot {
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */
-	//Compressor c = new Compressor(20);
+	Compressor c = new Compressor(20);
 	
-	//Solenoid angler1 = new Solenoid(0);
-	//Solenoid angler2 = new Solenoid(1);
-	//Solenoid tester = new Solenoid(7);
+	Solenoid angler1 = new Solenoid(0);
+	Solenoid angler2 = new Solenoid(1);
+	Solenoid tester = new Solenoid(7);
 	
 	//DoubleSolenoid angler = new DoubleSolenoid(0,1);
 	//DoubleSolenoid pusher = new DoubleSolenoid(2,3);
@@ -77,30 +80,28 @@ public class HkBot extends SampleRobot {
 
 	
 	/* ArmStrong Angles (DONASHIA) */
-	int ENC_SCALE = 100; 					//scale from degrees to armstrong encoder bips
-	double startAngleValue = 70.0 * ENC_SCALE;
-	double drawbridgeAngleValue = 45.0 * ENC_SCALE;
-	double collectorAngleValue = 15.0 * ENC_SCALE;
-	double portcullisAngleValue = 0.0 * ENC_SCALE;
-	double desiredAngleValue = startAngleValue;
-	int armEncoderRotation = 1400;
-
+	int ENC_SCALE = 20; 					//scale from degrees to armstrong encoder bips
+	int startAngleValue = (int) (0.0 * ENC_SCALE);		//60
+	int drawbridgeAngleValue = (int) (15.0 * ENC_SCALE);
+	int collectorAngleValue = (int) (70.0 * ENC_SCALE);
+	int floorAngleValue = (int)(85.0 * ENC_SCALE);
+	int desiredAngleValue = startAngleValue;
+	
 	/* Timers */
 	Timer timerAuto = new Timer();
 	double timerA = timerAuto.get();
 	Timer timerSpit = new Timer();
 
+	/*SmartDash Stuff */
+	private SendableChooser armP = new SendableChooser();
+	//LiveWindow libby = new LiveWindow();
 
-	
 /* 3 MAIN ROBOT METHODS */
 	public void RobotInit() {
 
 	//	c.setClosedLoopControl(true);
 		
-		armMotor.changeControlMode(TalonControlMode.Position);
-		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		armMotor.setPID(1.0, 0.0, 0.0);
-		
+
 		//exime.camInit();
 	}
 
@@ -117,22 +118,25 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
+		
+			
+			
 			//tester.clearAllPCMStickyFaults();
 			//SmartDashboard.putBoolean("Is Blacklisted?", tester.isBlackListed());
 			//SmartDashboard.putBoolean("Volt Stick Fault?", tester.getPCMSolenoidVoltageStickyFault());
 			//SmartDashboard.putString("To String?", tester.toString());			
 			//tester.set(false);
 			//jameseyTestCamera();
-
-		    //checkCompressor();
+            
+		    checkCompressor();
 			checkUltrasonic();
 			
 			// smartDrive.joyTinkDrive();
 			smartDrive.basicTinkDrive();
 			
-			simpleArmstrongMove();
-			 //armMove();
-            
+			//simpleArmstrongMove();
+			 armMove();
+		    
 			//simpleCollector();
 			comboCollector();
 			
@@ -168,18 +172,29 @@ public class HkBot extends SampleRobot {
 	
 	/* Move ArmStrong with Joystick (DONASHIA/ ELIJAH) */
 	public void armMove() {
-
-		boolean armLimitFloor = armLimiterFloor.get();
-		boolean armLimitBack = armLimiterBack.get();
+		
+//		 SmartDashboard.getDouble("Change Arm P", armMotor.setP(0.01));
+		
+		//libby.addActuator("arm", "motor", armMotor);
+		//libby.addSensor("arm", 7, component);
+		 
+		armMotor.changeControlMode(TalonControlMode.Position);
+		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+		armMotor.setPID(1.200, 0.001, 0.010);
+		
+		
+		boolean armLimitFloor = !armLimiterFloor.get();
+		boolean armLimitBack = !armLimiterBack.get();
 		
 		//Check if a limit swith is hit before moving
 		if (armLimitFloor == true) {
-			armMotor.setPosition(0.0);
-			armMotor.set(0.0);
+			armMotor.setEncPosition(floorAngleValue);
+			desiredAngleValue = floorAngleValue;
 			SmartDashboard.putString("Arm Moving?", "Zeroed at Floor!");
 			
 		} else if(armLimitBack == true){
-			armMotor.set(armMotor.getPosition());
+			armMotor.setEncPosition(startAngleValue);
+			desiredAngleValue = startAngleValue;
 			SmartDashboard.putString("Arm Moving?", "STOP at Back!");
 			
 		} else {
@@ -195,13 +210,13 @@ public class HkBot extends SampleRobot {
 				desiredAngleValue = collectorAngleValue;
 				//armMotor.setEncPosition((int) collectorAngleValue);
 			} else if (xMan.getPOV() == POV_DOWN) {
-				desiredAngleValue = portcullisAngleValue;
+				desiredAngleValue = floorAngleValue;
 				//armMotor.setEncPosition((int) portcullisAngleValue);
 			}
-
-			//move arm
-			armMotor.set(desiredAngleValue);
 		}
+		
+		//move arm
+		armMotor.set(desiredAngleValue);
 		
 		SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
 		SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
@@ -253,24 +268,25 @@ public class HkBot extends SampleRobot {
 		return encAngle;
 
 	}
-/*
+
 	// Turn Compressor on & off with Pressure Switch 
 	public void checkCompressor() {
+		
+		//c.start();
+		//tester.set(true);
+		//angler1.set(false);
+		//angler2.set(true);
+		
 		// Is it on or not?
 		// get values from the pressure switch
-		if (c.getPressureSwitchValue() == true) {
-
-			// Please show on the smartDashboard
-			SmartDashboard.putBoolean("Compressor On", c.getClosedLoopControl());
-
-		} else {
-			c.getPressureSwitchValue();
-			// Turn off
-			SmartDashboard.putBoolean("Compressor Off", c.getClosedLoopControl());
+		if (c.getPressureSwitchValue() == true) {		// Please show on the smartDashboard
+			SmartDashboard.putBoolean("Compressor Status", c.getPressureSwitchValue());
+		} else {										// Turn off
+			SmartDashboard.putBoolean("Compressor Status", 	c.getPressureSwitchValue());
 		}
 		
 	}
-*/
+
 	
 	/*Check Value of Ultrasonic Sensor in Inches */
 	public void checkUltrasonic(){
@@ -328,18 +344,33 @@ public class HkBot extends SampleRobot {
 		
 		armMotor.changeControlMode(TalonControlMode.PercentVbus);		//go to default control mode
 		double speed = xMan.getRawAxis(RIGHT_UP_AXIS);
-		boolean armLimitFloor = armLimiterFloor.get();
-		boolean armLimitBack = armLimiterBack.get();
+		boolean armLimitFloor = !armLimiterFloor.get();
+		boolean armLimitBack = !armLimiterBack.get();
 		SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
 		SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
+		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
+		SmartDashboard.putNumber("Arm Speed", speed);
 		
-		if (armLimitFloor == true || armLimitBack == true){
+		
+		if (armLimitFloor == true) {
+			
 			armMotor.set(0.0);
-			SmartDashboard.putString("Arm Moving?", "STOP!");
-		} else {
-			armMotor.set(speed);
+			SmartDashboard.putString("Arm Moving?", "STOP! floor");
+		} else if (armLimitBack == true){
+			armMotor.setEncPosition(0);
+			armMotor.set(0.0);
+			SmartDashboard.putString("Arm Moving?", "STOP! back");
+		} else if(speed >= 0.1 || speed < -0.1){
+			armMotor.set(speed*1);
 			SmartDashboard.putString("Arm Moving?", "Going...");
+		} else {
+		
+			armMotor.set(0);
+			SmartDashboard.putString("Arm Moving?", "stop");
+
+			
 		}
+			
 
 	}
 
