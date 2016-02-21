@@ -3,6 +3,7 @@ package org.usfirst.frc.team1660.robot;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.Talon;
@@ -58,19 +59,22 @@ public class HkBot extends SampleRobot {
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */
-	Compressor c = new Compressor(20);
+	Compressor c = new Compressor(12);
 	
-	Solenoid angler1 = new Solenoid(0);
-	Solenoid angler2 = new Solenoid(1);
-	Solenoid tester = new Solenoid(7);
+	//Solenoid angler1 = new Solenoid(0);
+	//Solenoid angler2 = new Solenoid(1);
+	//Solenoid tester = new Solenoid(7);
 	
 	//DoubleSolenoid angler = new DoubleSolenoid(0,1);
 	//DoubleSolenoid pusher = new DoubleSolenoid(2,3);
 	//DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
 	
 	//Relay compressor = new Relay(0);
-	//Relay angler = new Relay(1);
-	//Relay pusher = new Relay(2);
+	Relay angler = new Relay(1);
+	Relay pusher = new Relay(2);
+	Relay airC = new Relay(3);
+	
+	DigitalInput pressureSwitch = new DigitalInput(3);
 	//Relay sallyPortHook = new Relay(3);
 
 	/* Sensor Setup */
@@ -83,22 +87,33 @@ public class HkBot extends SampleRobot {
 	int ENC_SCALE = 20; 					//scale from degrees to armstrong encoder bips
 	int startAngleValue = (int) (0.0 * ENC_SCALE);		//60
 	int drawbridgeAngleValue = (int) (15.0 * ENC_SCALE);
-	int collectorAngleValue = (int) (70.0 * ENC_SCALE);
-	int floorAngleValue = (int)(85.0 * ENC_SCALE);
+	int collectorAngleValue = 1050;		//(int) (70.0 * ENC_SCALE);
+	int floorAngleValue = 1400;  //(int)(85.0 * ENC_SCALE);
 	int desiredAngleValue = startAngleValue;
 	
 	/* Timers */
 	Timer timerAuto = new Timer();
 	double timerA = timerAuto.get();
 	Timer timerSpit = new Timer();
-
+	
+	//SmartDashboard Auto Strategy
+	SendableChooser strategy = new SendableChooser();
+	
+	
 	/*SmartDash Stuff */
 	private SendableChooser armP = new SendableChooser();
 	//LiveWindow libby = new LiveWindow();
 
 /* 3 MAIN ROBOT METHODS */
-	public void RobotInit() {
+	public void robotInit() {
 
+		
+		
+		strategy.addObject("Go Forwad Strategy", new Integer(1));
+	    strategy.addObject("Chival Strategy", new Integer(2));
+	    strategy.addObject("Portcullis Strategy", new Integer(3));
+	    SmartDashboard.putData("strategy selector", strategy);
+		 
 	//	c.setClosedLoopControl(true);
 		
 
@@ -106,11 +121,11 @@ public class HkBot extends SampleRobot {
 	}
 
 	public void autonomous() {
-
+        int currentStrategy = (int) strategy.getSelected(); 
+        
 		while (isAutonomous() && isEnabled()) {
-
-			// reachBreachScore();
-
+			
+			  
 		}
 	}
 
@@ -135,10 +150,10 @@ public class HkBot extends SampleRobot {
 			smartDrive.basicTinkDrive();
 			
 			//simpleArmstrongMove();
-			 armMove();
+			armMove();
 		    
-			//simpleCollector();
-			comboCollector();
+			simpleCollector();
+			//comboCollector();
 			
 			simpleLauncherWheels();
 			lowGoalSpit();
@@ -183,8 +198,8 @@ public class HkBot extends SampleRobot {
 		armMotor.setPID(1.200, 0.001, 0.010);
 		
 		
-		boolean armLimitFloor = !armLimiterFloor.get();
-		boolean armLimitBack = !armLimiterBack.get();
+		boolean armLimitFloor = armLimiterFloor.get();
+		boolean armLimitBack = armLimiterBack.get();
 		
 		//Check if a limit swith is hit before moving
 		if (armLimitFloor == true) {
@@ -212,6 +227,9 @@ public class HkBot extends SampleRobot {
 			} else if (xMan.getPOV() == POV_DOWN) {
 				desiredAngleValue = floorAngleValue;
 				//armMotor.setEncPosition((int) portcullisAngleValue);
+			}
+			else if(xMan.getRawAxis(RIGHT_UP_AXIS) < -0.2){
+				desiredAngleValue -= 20;
 			}
 		}
 		
@@ -272,20 +290,42 @@ public class HkBot extends SampleRobot {
 	// Turn Compressor on & off with Pressure Switch 
 	public void checkCompressor() {
 		
-		//c.start();
-		//tester.set(true);
-		//angler1.set(false);
-		//angler2.set(true);
+		airC.setDirection(Relay.Direction.kForward);
 		
+		boolean flag = false;
+
 		// Is it on or not?
-		// get values from the pressure switch
-		if (c.getPressureSwitchValue() == true) {		// Please show on the smartDashboard
-			SmartDashboard.putBoolean("Compressor Status", c.getPressureSwitchValue());
-		} else {										// Turn off
-			SmartDashboard.putBoolean("Compressor Status", 	c.getPressureSwitchValue());
-		}
+		boolean pressureOn = pressureSwitch.get();
+		SmartDashboard.putBoolean("Pressure Switch", pressureOn);
+	
+		/*
+		//Turn on based on pressure switch
+		if (pressureOn==true) {
+	        airC.set(Relay.Value.kOff);
+	        SmartDashboard.putString("Compressor", "PSwitched OFF");
+		} 
 		
-	}
+				*/
+		// Manually change through Manipulator Joystick
+		if (xMan.getRawButton(A_BUTTON)==true ){  
+				airC.set(Relay.Value.kOn);
+				SmartDashboard.putString(  "Compressor", "On");
+			}                     		
+		else if (xMan.getRawButton(B_BUTTON)==true && flag == false){    
+				airC.set(Relay.Value.kOff);
+				SmartDashboard.putString(  "Compressor", "Off");
+				flag =true;
+			 }
+/*
+		else if (xMan.getRawButton(B_BUTTON)==true && flag == true){    
+						if (pressureOn == false){
+					        airC.set(Relay.Value.kOn);
+					        SmartDashboard.putString("Compressor", "PSwitched ON");
+					   }
+		}
+*/
+			
+}
 
 	
 	/*Check Value of Ultrasonic Sensor in Inches */
@@ -388,11 +428,11 @@ public class HkBot extends SampleRobot {
 	public void simpleLauncherTrigger() {
 		if (xMan.getRawButton(LB_BUTTON) == true) {
 			launchTrigger();
-			SmartDashboard.putString("TestingTrigger","LB_launchTrigger");
+			SmartDashboard.putString("SimpleTrigger","LB_push");
 
 		} else {
 			launchRetract();
-			SmartDashboard.putString("TestingTrigger","LB_launchRetract");
+			SmartDashboard.putString("SimpleTrigger","LB_retract");
 		}
 	}
 
@@ -400,16 +440,62 @@ public class HkBot extends SampleRobot {
 	public void simpleLauncherAngle() {
 		if (xMan.getRawButton(RB_BUTTON)) {
 			raiseLauncher();
-			SmartDashboard.putString("TestingSol","RB_raiseLauncher");
+			SmartDashboard.putString("SimpleLauncher","RB_raising!");
 		} else if (xMan.getRawAxis(RT_AXIS) > 0.5){
-			SmartDashboard.putString("TestingSol","RT_lowerLauncher");
+			SmartDashboard.putString("SimpleLauncher","RT_lowering!");
 			lowerLauncher();
 		}
 	}
 
 
 /* AUTO METHODS */
+	
+	void driveForwardStrategy(){
+		double speed = 0.5;
+		Timer timerA = new Timer();
+		timerA.start();
+		while(timerA.get() < 5.0){
+			goForward(speed);
+		}
+	}
 
+	void chivalStrategy() {
+		double speed = 0.5;
+		Timer timerA = new Timer();
+		timerA.start();
+		while(timerA.get() < 3.0){
+			goForward(speed);
+		}
+		while(timerA.get() > 3.0 && timerA.get() < 4.0) {
+			armMotor.set(floorAngleValue);
+		}
+		while(timerA.get()> 4.0 && timerA.get() < 7.0){
+			goForward(speed); 
+		}
+}
+	 
+	void portculusStrategy() {
+		double speed = 0.5;
+		Timer timerA = new Timer();
+		timerA.start();
+		while (timerA.get() < 3.0) {
+			goForward(speed);
+		}
+		while (timerA.get() > 3.0 && timerA.get() < 4.0) {
+			armMotor.set(floorAngleValue);
+		}
+		while (timerA.get() > 4.0 && timerA.get() < 4.5) {
+			goForward(speed);
+		}
+		while (timerA.get() > 4.5 && timerA.get() < 9.0) {
+			armMotor.set(startAngleValue);
+			goForward(speed);
+		}
+	}
+	
+	
+	
+	
 	/* shoots boulder at given speed */
 	public void launchWheels(double speed) {
 		launcherLeft.set(speed);
@@ -418,25 +504,30 @@ public class HkBot extends SampleRobot {
 	
 	/* pushes boulder towards wheels (JATARA & DARYLE) */
 	public void launchTrigger(){
-		//pusher.set(DoubleSolenoid.Value.kOff);
-
-		//pusher.set(DoubleSolenoid.Value.kForward);
+		pusher.setDirection(Relay.Direction.kBoth);
+		pusher.set(Relay.Value.kForward);
 	}
 	
 	/* retracts pistons  (JATARA & DARYLE) */
 	public void launchRetract(){
-		//pusher.set(DoubleSolenoid.Value.kReverse);
+		pusher.setDirection(Relay.Direction.kBoth);
+		pusher.set(Relay.Value.kReverse);
 	}
 	
 	/* Raise launcher */
 	public void raiseLauncher() { 
 		//angler1.set(true);
 		//angler2.set(true);
+		angler.setDirection(Relay.Direction.kBoth);
+		angler.set(Relay.Value.kForward);
 	}
 	/* Lower launcher */
 	public void lowerLauncher(){
 		//angler1.set(false);
 		//angler2.set(false);
+
+		angler.setDirection(Relay.Direction.kBoth);
+		angler.set(Relay.Value.kReverse);
 	}
 	 
 	 /* Aim robot yaw based on camera image (JAMESEY, AHMED)
@@ -451,6 +542,7 @@ public class HkBot extends SampleRobot {
 	/* AUTO Go forward (ADONIS) */
 	public void goForward(double speed) {
 		smartDrive.tinkDrive(speed, speed);
+	
 	}
 
 	/* AUTO Turn right (ADONIS) */
