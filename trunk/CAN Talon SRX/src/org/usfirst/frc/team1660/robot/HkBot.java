@@ -58,25 +58,21 @@ public class HkBot extends SampleRobot {
 	CANTalon armMotor = new CANTalon(7);
 	Talon strongCollector = new Talon(0);
 
-	/* Pneumatics */
-	Compressor c = new Compressor(12);
-	
+	/* Pneumatics */	
+	Relay compressor = new Relay(0);
+	Relay angler = new Relay(1);
+	Relay pusher = new Relay(2);
+	Relay airC = new Relay(3);
+	DigitalInput pressureSwitch = new DigitalInput(3);
+	//Relay sallyPortHook = new Relay(3);
+	//Compressor c = new Compressor(12);
 	//Solenoid angler1 = new Solenoid(0);
 	//Solenoid angler2 = new Solenoid(1);
 	//Solenoid tester = new Solenoid(7);
-	
 	//DoubleSolenoid angler = new DoubleSolenoid(0,1);
 	//DoubleSolenoid pusher = new DoubleSolenoid(2,3);
 	//DoubleSolenoid sallyPortHook = new DoubleSolenoid(4,5);
 	
-	//Relay compressor = new Relay(0);
-	Relay angler = new Relay(1);
-	Relay pusher = new Relay(2);
-	Relay airC = new Relay(3);
-	
-	DigitalInput pressureSwitch = new DigitalInput(3);
-	//Relay sallyPortHook = new Relay(3);
-
 	/* Sensor Setup */
 	DigitalInput armLimiterFloor = new DigitalInput(0);
 	DigitalInput armLimiterBack = new DigitalInput(1);
@@ -98,31 +94,24 @@ public class HkBot extends SampleRobot {
 	
 	//SmartDashboard Auto Strategy
 	SendableChooser strategy = new SendableChooser();
-	
-	
-	/*SmartDash Stuff */
-	private SendableChooser armP = new SendableChooser();
-	//LiveWindow libby = new LiveWindow();
+
 
 /* 3 MAIN ROBOT METHODS */
 	public void robotInit() {
 
-		
-		
 		strategy.addObject("Go Forwad Strategy", new Integer(1));
 	    strategy.addObject("Chival Strategy", new Integer(2));
 	    strategy.addObject("Portcullis Strategy", new Integer(3));
 	    SmartDashboard.putData("strategy selector", strategy);
-		 
-	//	c.setClosedLoopControl(true);
-		
 
 		//exime.camInit();
 	}
 
 	public void autonomous() {
-        int currentStrategy = (int) strategy.getSelected(); 
         
+		robotInit();		
+		int currentStrategy = (int) strategy.getSelected(); 
+    
 		while (isAutonomous() && isEnabled()) {
 			
 			  
@@ -133,14 +122,6 @@ public class HkBot extends SampleRobot {
 
 		while (isOperatorControl() && isEnabled()) {
 
-		
-			
-			
-			//tester.clearAllPCMStickyFaults();
-			//SmartDashboard.putBoolean("Is Blacklisted?", tester.isBlackListed());
-			//SmartDashboard.putBoolean("Volt Stick Fault?", tester.getPCMSolenoidVoltageStickyFault());
-			//SmartDashboard.putString("To String?", tester.toString());			
-			//tester.set(false);
 			//jameseyTestCamera();
             
 		    checkCompressor();
@@ -179,20 +160,14 @@ public class HkBot extends SampleRobot {
 	 */
 	public void comboCollector() {
 		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
-		strongCollector.set(speed);
-		launcherLeft.set(speed);
-		launcherRight.set(speed);
+		collectWheels(-1.0);
+		launchWheels(-0.8);
 		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
 	}
 	
 	/* Move ArmStrong with Joystick (DONASHIA/ ELIJAH) */
 	public void armMove() {
-		
-//		 SmartDashboard.getDouble("Change Arm P", armMotor.setP(0.01));
-		
-		//libby.addActuator("arm", "motor", armMotor);
-		//libby.addSensor("arm", 7, component);
-		 
+				 
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.200, 0.001, 0.010);
@@ -217,20 +192,18 @@ public class HkBot extends SampleRobot {
 			// Decide which angle to use based on buttons (Samuel Gonzalez)
 			if (xMan.getPOV() == POV_UP) {
 				desiredAngleValue = startAngleValue;
-				//armMotor.setEncPosition((int) startAngleValue);
 			} else if (xMan.getPOV() == POV_RIGHT) {
 				desiredAngleValue = drawbridgeAngleValue;
-				//armMotor.setEncPosition((int) drawbridgeAngleValue);
 			} else if (xMan.getPOV() == POV_LEFT) {
 				desiredAngleValue = collectorAngleValue;
-				//armMotor.setEncPosition((int) collectorAngleValue);
 			} else if (xMan.getPOV() == POV_DOWN) {
 				desiredAngleValue = floorAngleValue;
-				//armMotor.setEncPosition((int) portcullisAngleValue);
-			}
-			else if(xMan.getRawAxis(RIGHT_UP_AXIS) < -0.2){
+			} else if(xMan.getRawAxis(RIGHT_UP_AXIS) < -0.2){
 				desiredAngleValue -= 20;
+			} else if(xMan.getRawAxis(RIGHT_UP_AXIS) > 0.2){
+				desiredAngleValue += 20;
 			}
+			
 		}
 		
 		//move arm
@@ -254,6 +227,7 @@ public class HkBot extends SampleRobot {
 			//run right away
 			if(timeFlag == false){
 				armMotor.set(drawbridgeAngleValue);		// raise the armstrong out of the way
+				collectWheels(1.0);
 				lowerLauncher();						// angle launcher down
 				launchWheels(1.0);						// start spinning the launcher wheels out
 				timeFlag = true;						//flip the flag				
@@ -290,8 +264,7 @@ public class HkBot extends SampleRobot {
 	// Turn Compressor on & off with Pressure Switch 
 	public void checkCompressor() {
 		
-		airC.setDirection(Relay.Direction.kForward);
-		
+		airC.setDirection(Relay.Direction.kForward);		
 		boolean flag = false;
 
 		// Is it on or not?
@@ -375,8 +348,8 @@ public class HkBot extends SampleRobot {
 	/* Joystick Method to Collect & Spit out Boulders */
 	public void simpleCollector() {
 		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
-		strongCollector.set(speed);
-		SmartDashboard.putDouble("xMan LeftUpAxis",	speed);
+		collectWheels(speed);
+		SmartDashboard.putDouble("Collect LeftUpAxis",	speed);
 	}
 
 	/* Joystick method to move Armstrong up & down manually */
@@ -391,9 +364,7 @@ public class HkBot extends SampleRobot {
 		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
 		SmartDashboard.putNumber("Arm Speed", speed);
 		
-		
-		if (armLimitFloor == true) {
-			
+		if (armLimitFloor == true) {	
 			armMotor.set(0.0);
 			SmartDashboard.putString("Arm Moving?", "STOP! floor");
 		} else if (armLimitBack == true){
@@ -404,13 +375,9 @@ public class HkBot extends SampleRobot {
 			armMotor.set(speed*1);
 			SmartDashboard.putString("Arm Moving?", "Going...");
 		} else {
-		
 			armMotor.set(0);
 			SmartDashboard.putString("Arm Moving?", "stop");
-
-			
 		}
-			
 
 	}
 
@@ -448,8 +415,9 @@ public class HkBot extends SampleRobot {
 	}
 
 
-/* AUTO METHODS */
+/* AUTO STRATEGY METHODS */
 	
+	/*AUTO method if lined up in front of LowBar */
 	void driveForwardStrategy(){
 		double speed = 0.5;
 		Timer timerA = new Timer();
@@ -458,8 +426,9 @@ public class HkBot extends SampleRobot {
 			goForward(speed);
 		}
 	}
-
-	void chivalStrategy() {
+	
+	/*AUTO method if lined up in front of Cheval de Frise*/
+	void chevalStrategy() {
 		double speed = 0.5;
 		Timer timerA = new Timer();
 		timerA.start();
@@ -474,7 +443,8 @@ public class HkBot extends SampleRobot {
 		}
 }
 	 
-	void portculusStrategy() {
+	/*AUTO method if lined up in front of Portcullis */
+	public void portcullisStrategy() {
 		double speed = 0.5;
 		Timer timerA = new Timer();
 		timerA.start();
@@ -491,73 +461,6 @@ public class HkBot extends SampleRobot {
 			armMotor.set(startAngleValue);
 			goForward(speed);
 		}
-	}
-	
-	
-	
-	
-	/* shoots boulder at given speed */
-	public void launchWheels(double speed) {
-		launcherLeft.set(speed);
-		launcherRight.set(-speed);
-	}
-	
-	/* pushes boulder towards wheels (JATARA & DARYLE) */
-	public void launchTrigger(){
-		pusher.setDirection(Relay.Direction.kBoth);
-		pusher.set(Relay.Value.kForward);
-	}
-	
-	/* retracts pistons  (JATARA & DARYLE) */
-	public void launchRetract(){
-		pusher.setDirection(Relay.Direction.kBoth);
-		pusher.set(Relay.Value.kReverse);
-	}
-	
-	/* Raise launcher */
-	public void raiseLauncher() { 
-		//angler1.set(true);
-		//angler2.set(true);
-		angler.setDirection(Relay.Direction.kBoth);
-		angler.set(Relay.Value.kForward);
-	}
-	/* Lower launcher */
-	public void lowerLauncher(){
-		//angler1.set(false);
-		//angler2.set(false);
-
-		angler.setDirection(Relay.Direction.kBoth);
-		angler.set(Relay.Value.kReverse);
-	}
-	 
-	 /* Aim robot yaw based on camera image (JAMESEY, AHMED)
-	 */
-	public void aimRobotYaw(CamImage image) {
-		// determine how to move robot based on image
-
-		// move robot
-
-	}
-
-	/* AUTO Go forward (ADONIS) */
-	public void goForward(double speed) {
-		smartDrive.tinkDrive(speed, speed);
-	
-	}
-
-	/* AUTO Turn right (ADONIS) */
-	public void turnRight(double speed) {
-		smartDrive.tinkDrive(speed, -speed);
-	}
-
-	/* AUTO Turn left (ADONIS) */
-	public void turnLeft(double speed) {
-		smartDrive.tinkDrive(-speed, speed);
-	}//luka was here
-
-	/* AUTO go backwards (ADONIS) */
-	public void goBackward(double speed) {
-		smartDrive.tinkDrive(-speed, -speed);
 	}
 	
 	/* Method to reach the D, Breach a Drivetrain Def, & 
@@ -587,7 +490,73 @@ public class HkBot extends SampleRobot {
 		// go back to "reach"
 
 	}
-	
 
+	/* Aim robot yaw based on camera image (JAMESEY, AHMED)
+	 */
+	public void aimRobotYaw(CamImage image) {
+		// determine how to move robot based on image
+
+		// move robot
+
+	}
+
+	
+	/* BASIC AUTO METHODS */	
+	
+	/* shoots boulder at given speed */
+	public void launchWheels(double speed) {
+		launcherLeft.set(speed);
+		launcherRight.set(-speed);
+	}	
+	
+	/* collects or spits boulders */
+	public void collectWheels(double speed){
+		strongCollector.set(speed);
+	}	
+	
+	/* pushes boulder towards wheels (JATARA & DARYLE) */
+	public void launchTrigger(){
+		pusher.setDirection(Relay.Direction.kBoth);
+		pusher.set(Relay.Value.kForward);
+	}
+	
+	/* retracts pistons  (JATARA & DARYLE) */
+	public void launchRetract(){
+		pusher.setDirection(Relay.Direction.kBoth);
+		pusher.set(Relay.Value.kReverse);
+	}
+	
+	/* Raise launcher */
+	public void raiseLauncher() { 
+		angler.setDirection(Relay.Direction.kBoth);
+		angler.set(Relay.Value.kForward);
+	}
+	/* Lower launcher */
+	public void lowerLauncher(){
+		angler.setDirection(Relay.Direction.kBoth);
+		angler.set(Relay.Value.kReverse);
+	}
+	 
+	/* AUTO Go forward (ADONIS) */
+	public void goForward(double speed) {
+		smartDrive.tinkDrive(speed, speed);
+	}
+
+	/* AUTO Turn right (ADONIS) */
+	public void turnRight(double speed) {
+		smartDrive.tinkDrive(speed, -speed);
+	}
+
+	/* AUTO Turn left (ADONIS) */
+	public void turnLeft(double speed) {
+		smartDrive.tinkDrive(-speed, speed);
+	}//luka was here
+
+	/* AUTO go backwards (ADONIS) */
+	public void goBackward(double speed) {
+		smartDrive.tinkDrive(-speed, -speed);
+	}
+	
+	 
 
 }
