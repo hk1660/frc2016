@@ -47,9 +47,9 @@ public class HkBot extends SampleRobot {
 	final int RIGHT_SIDEWAYS_AXIS = 4;
 	final int RIGHT_UP_AXIS = 5;
 	final int POV_UP = 0;
-	final int POV_LEFT = 90;
+	final int POV_LEFT = 270;
 	final int POV_DOWN = 180;
-	final int POV_RIGHT = 270;
+	final int POV_RIGHT = 90;
 
 	/* Channels for the Motors */
 	SmartDrive smartDrive = new SmartDrive();
@@ -59,7 +59,6 @@ public class HkBot extends SampleRobot {
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */	
-	Relay compressor = new Relay(0);
 	Relay angler = new Relay(1);
 	Relay pusher = new Relay(2);
 	Relay airC = new Relay(3);
@@ -77,6 +76,8 @@ public class HkBot extends SampleRobot {
 	DigitalInput armLimiterFloor = new DigitalInput(0);
 	DigitalInput armLimiterBack = new DigitalInput(1);
 	AnalogInput batman = new AnalogInput(0);
+	boolean armLimitFloor = !armLimiterFloor.get();
+	boolean armLimitBack = !armLimiterBack.get();
 
 	
 	/* ArmStrong Angles (DONASHIA) */
@@ -133,8 +134,8 @@ public class HkBot extends SampleRobot {
 			//simpleArmstrongMove();
 			armMove();
 		    
-			simpleCollector();
-			//comboCollector();
+			//simpleCollector();
+			comboCollector();
 			
 			simpleLauncherWheels();
 			lowGoalSpit();
@@ -146,7 +147,16 @@ public class HkBot extends SampleRobot {
 			
 			//ourTable.run();
 
+			armLimitFloor = !armLimiterFloor.get();
+			armLimitBack = !armLimiterBack.get();
+			boolean pressureValue = !pressureSwitch.get();
+			double checkCurrent = armMotor.getOutputCurrent();
 			
+			SmartDashboard.putDouble("Arm Current", checkCurrent);
+			SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
+			SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
+			SmartDashboard.putBoolean("PressureSwitchTest", pressureValue);
+		
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
 		}
 
@@ -160,8 +170,8 @@ public class HkBot extends SampleRobot {
 	 */
 	public void comboCollector() {
 		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
-		collectWheels(-1.0);
-		launchWheels(-0.8);
+		collectWheels(-1.0 * speed);
+		launchWheels(-1.0 * speed);
 		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
 	}
 	
@@ -173,31 +183,32 @@ public class HkBot extends SampleRobot {
 		armMotor.setPID(1.200, 0.001, 0.010);
 		
 		
-		boolean armLimitFloor = armLimiterFloor.get();
-		boolean armLimitBack = armLimiterBack.get();
-		
 		//Check if a limit swith is hit before moving
 		if (armLimitFloor == true) {
 			armMotor.setEncPosition(floorAngleValue);
-			desiredAngleValue = floorAngleValue;
+			desiredAngleValue = floorAngleValue -20;
 			SmartDashboard.putString("Arm Moving?", "Zeroed at Floor!");
 			
-		} else if(armLimitBack == true){
+		} else if(armLimitBack == true ){  //|| armMotor.getOutputCurrent() > 2.0){
 			armMotor.setEncPosition(startAngleValue);
-			desiredAngleValue = startAngleValue;
+			desiredAngleValue = startAngleValue + 40;
 			SmartDashboard.putString("Arm Moving?", "STOP at Back!");
 			
 		} else {
 
 			// Decide which angle to use based on buttons (Samuel Gonzalez)
 			if (xMan.getPOV() == POV_UP) {
-				desiredAngleValue = startAngleValue;
+				desiredAngleValue = startAngleValue + 40;
+				SmartDashboard.putString("POV", "UP");
 			} else if (xMan.getPOV() == POV_RIGHT) {
-				desiredAngleValue = drawbridgeAngleValue;
-			} else if (xMan.getPOV() == POV_LEFT) {
 				desiredAngleValue = collectorAngleValue;
+				SmartDashboard.putString("POV", "RIGHT");
+			} else if (xMan.getPOV() == POV_LEFT) {
+				desiredAngleValue = drawbridgeAngleValue;
+				SmartDashboard.putString("POV", "LEFT");
 			} else if (xMan.getPOV() == POV_DOWN) {
 				desiredAngleValue = floorAngleValue;
+				SmartDashboard.putString("POV", "DOWN");
 			} else if(xMan.getRawAxis(RIGHT_UP_AXIS) < -0.2){
 				desiredAngleValue -= 20;
 			} else if(xMan.getRawAxis(RIGHT_UP_AXIS) > 0.2){
@@ -209,10 +220,9 @@ public class HkBot extends SampleRobot {
 		//move arm
 		armMotor.set(desiredAngleValue);
 		
-		SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
-		SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
 		SmartDashboard.putNumber("Arm Encoder", armMotor.getEncPosition());
 		SmartDashboard.putNumber("desired enc angle Value", desiredAngleValue);
+		SmartDashboard.putNumber("Armstrong Voltage",armMotor.getOutputCurrent());
 	}
 	
 	
@@ -264,7 +274,7 @@ public class HkBot extends SampleRobot {
 	// Turn Compressor on & off with Pressure Switch 
 	public void checkCompressor() {
 		
-		airC.setDirection(Relay.Direction.kForward);		
+		airC.setDirection(Relay.Direction.kBoth);		
 		boolean flag = false;
 
 		// Is it on or not?
@@ -281,7 +291,7 @@ public class HkBot extends SampleRobot {
 				*/
 		// Manually change through Manipulator Joystick
 		if (xMan.getRawButton(A_BUTTON)==true ){  
-				airC.set(Relay.Value.kOn);
+				airC.set(Relay.Value.kForward);
 				SmartDashboard.putString(  "Compressor", "On");
 			}                     		
 		else if (xMan.getRawButton(B_BUTTON)==true && flag == false){    
@@ -348,7 +358,7 @@ public class HkBot extends SampleRobot {
 	/* Joystick Method to Collect & Spit out Boulders */
 	public void simpleCollector() {
 		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
-		collectWheels(speed);
+		collectWheels(-speed);
 		SmartDashboard.putDouble("Collect LeftUpAxis",	speed);
 	}
 
@@ -387,7 +397,7 @@ public class HkBot extends SampleRobot {
 			launchWheels(1.0);
 		} else if (xMan.getRawButton(Y_BUTTON) == true) {
 			launchWheels(-1.0);
-		} else {
+		} else if (xMan.getRawAxis(LEFT_UP_AXIS)==0.0) {
 			launchWheels(0.0);		}
 	}
 	
