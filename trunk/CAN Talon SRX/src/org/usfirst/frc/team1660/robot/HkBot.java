@@ -1,15 +1,11 @@
 package org.usfirst.frc.team1660.robot;
 
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon.TalonControlMode;
 import edu.wpi.first.wpilibj.Talon;
-import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-//import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.livewindow.LiveWindowSendable;
@@ -18,6 +14,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
+//import edu.wpi.first.wpilibj.Compressor;
+//import edu.wpi.first.wpilibj.DoubleSolenoid;
+//import edu.wpi.first.wpilibj.Solenoid;
 
 public class HkBot extends SampleRobot {
 
@@ -93,6 +92,9 @@ public class HkBot extends SampleRobot {
 	double timerA = timerAuto.get();
 	Timer timerSpit = new Timer();
 	
+	boolean lowGoalFlag = false;
+
+	
 	//SmartDashboard Auto Strategy
 	SendableChooser strategy = new SendableChooser();
 
@@ -125,11 +127,13 @@ public class HkBot extends SampleRobot {
 
 			//jameseyTestCamera();
             
-		    checkCompressor();
+		    runCompressor();
+		    checkPressureSwitch();
+		    checkLimitSwitches();
 			checkUltrasonic();
 			
-			// smartDrive.joyTinkDrive();
 			smartDrive.basicTinkDrive();
+			// smartDrive.joyTinkDrive();
 			
 			//simpleArmstrongMove();
 			armMove();
@@ -138,24 +142,13 @@ public class HkBot extends SampleRobot {
 			comboCollector();
 			
 			simpleLauncherWheels();
+			simpleLauncherTrigger();
 			lowGoalSpit();
 			
 			simpleLauncherAngle();
 			//highGoalLaunch();
 			
-			simpleLauncherTrigger();
-			
 			//ourTable.run();
-
-			armLimitFloor = !armLimiterFloor.get();
-			armLimitBack = !armLimiterBack.get();
-			boolean pressureValue = !pressureSwitch.get();
-			double checkCurrent = armMotor.getOutputCurrent();
-			
-			SmartDashboard.putDouble("Arm Current", checkCurrent);
-			SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
-			SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
-			SmartDashboard.putBoolean("PressureSwitchTest", pressureValue);
 		
 			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
 		}
@@ -169,10 +162,18 @@ public class HkBot extends SampleRobot {
 	/*Collector method that spins collector and motor wheels in simultaneously
 	 */
 	public void comboCollector() {
-		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
-		collectWheels(-1.0 * speed);
-		launchWheels(-1.0 * speed);
-		SmartDashboard.putDouble("Collecting Boulder Axis",	speed);
+
+		double collectTrigger = xMan.getRawAxis(LEFT_UP_AXIS);
+		
+		if(collectTrigger > 0.05 || collectTrigger < 0.05){
+			collectWheels(-0.6);
+			launchWheels(-1.0);
+		} else if(xMan.getRawAxis(LT_AXIS) < 0.5){ //don't interfere with lowGoalSpit method
+			collectWheels(0.0);
+			launchWheels(0.0);
+		}
+		
+		SmartDashboard.putDouble("Collecting Boulder Axis",	collectTrigger);
 	}
 	
 	/* Move ArmStrong with Joystick (DONASHIA/ ELIJAH) */
@@ -229,25 +230,25 @@ public class HkBot extends SampleRobot {
 	/* Joystick Method to Spit Boulders into Low Goal */
 	public void lowGoalSpit() {
 
-		//timerSpit.start();		//needed?
-		boolean timeFlag = false;
-		
-		if (xMan.getRawAxis(LT_AXIS) > 0.5) {
-			
-			//run right away
-			if(timeFlag == false){
-				armMotor.set(drawbridgeAngleValue);		// raise the armstrong out of the way
-				collectWheels(1.0);
-				lowerLauncher();						// angle launcher down
-				launchWheels(1.0);						// start spinning the launcher wheels out
-				timeFlag = true;						//flip the flag				
-				timerSpit.reset();						//reset the clock to 0				
-			}
-			//wait for wheels to speed up to push ball
-			if(timerSpit.get() > 0.5){				
-				launchTrigger();						// trig boulder forward	
-				timeFlag = false;						//flip the flag back
-			}
+		SmartDashboard.putDouble("Spit Timer", timerSpit.get());
+
+		if (xMan.getRawAxis(LT_AXIS) > 0.5 && lowGoalFlag == false) {
+			desiredAngleValue = drawbridgeAngleValue; // raise the armstrong out
+														// of the way, needs
+														// comboCollector!
+			collectWheels(1.0);
+			lowerLauncher(); // angle launcher down
+			launchWheels(1.0); // start spinning the launcher wheels out
+			lowGoalFlag = true; // flip the flag
+			timerSpit.start();
+			timerSpit.reset(); // reset the clock to 0
+		}
+
+		// wait for wheels to speed up to push ball
+		if (timerSpit.get() > 0.5) {
+			launchTrigger(); // trig boulder forward
+			lowGoalFlag = false; // flip the flag back
+			timerSpit.stop();
 		}
 	}
 
@@ -271,8 +272,27 @@ public class HkBot extends SampleRobot {
 
 	}
 
+	/* Put Pressure Switch Values on SmartDashboard */
+	public void checkPressureSwitch(){
+		boolean pressureValue = !pressureSwitch.get();
+		SmartDashboard.putBoolean("PressureSwitchTest", pressureValue);
+	}
+	
+	/* Put Limit Switch Values on SmartDashboard */
+	public void checkLimitSwitches(){
+		armLimitFloor = !armLimiterFloor.get();
+		armLimitBack = !armLimiterBack.get();
+		double checkCurrent = armMotor.getOutputCurrent();
+		SmartDashboard.putDouble("Arm Current", checkCurrent);
+		SmartDashboard.putBoolean("Arm Limiter Floor", armLimitFloor);
+		SmartDashboard.putBoolean("Arm Limiter Back", armLimitBack);
+		
+	}
+	
+	
+	
 	// Turn Compressor on & off with Pressure Switch 
-	public void checkCompressor() {
+	public void runCompressor() {
 		
 		airC.setDirection(Relay.Direction.kBoth);		
 		boolean flag = false;
@@ -416,11 +436,11 @@ public class HkBot extends SampleRobot {
 	/* Joystick method to adjust angle of Launcher */
 	public void simpleLauncherAngle() {
 		if (xMan.getRawButton(RB_BUTTON)) {
-			raiseLauncher();
-			SmartDashboard.putString("SimpleLauncher","RB_raising!");
-		} else if (xMan.getRawAxis(RT_AXIS) > 0.5){
 			SmartDashboard.putString("SimpleLauncher","RT_lowering!");
 			lowerLauncher();
+		} else if (xMan.getRawAxis(RT_AXIS) > 0.5){
+			raiseLauncher();
+			SmartDashboard.putString("SimpleLauncher","RB_raising!");			
 		}
 	}
 
