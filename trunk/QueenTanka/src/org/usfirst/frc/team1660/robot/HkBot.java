@@ -62,6 +62,7 @@ public class HkBot extends SampleRobot {
 	Relay pusher = new Relay(2);
 	Relay airC = new Relay(3);
 	DigitalInput pressureSwitch = new DigitalInput(3);
+	boolean flag = false;
 	//Relay sallyPortHook = new Relay(3);
 	//Compressor c = new Compressor(12);
 	//Solenoid angler1 = new Solenoid(0);
@@ -127,7 +128,8 @@ public class HkBot extends SampleRobot {
 
 			//jameseyTestCamera();
             
-		    runCompressor();
+		    autoCompressor();
+		    //humanCompressor();
 		    checkPressureSwitch();
 		    checkLimitSwitches();
 			checkUltrasonic();
@@ -165,7 +167,7 @@ public class HkBot extends SampleRobot {
 
 		double collectTrigger = xMan.getRawAxis(LEFT_UP_AXIS);
 		
-		if(collectTrigger > 0.05 || collectTrigger < 0.05){
+		if(collectTrigger > 0.05 || collectTrigger < -0.05){
 			collectWheels(-0.6);
 			launchWheels(-1.0);
 		} else if(xMan.getRawAxis(LT_AXIS) < 0.5){ //don't interfere with lowGoalSpit method
@@ -292,41 +294,37 @@ public class HkBot extends SampleRobot {
 	
 	
 	// Turn Compressor on & off with Pressure Switch 
-	public void runCompressor() {
+	public void autoCompressor() {
 		
-		airC.setDirection(Relay.Direction.kBoth);		
-		boolean flag = false;
+		airC.setDirection(Relay.Direction.kBoth);
 
 		// Is it on or not?
 		boolean pressureOn = pressureSwitch.get();
 		SmartDashboard.putBoolean("Pressure Switch", pressureOn);
+
+		// Turn on based on pressure switch
+		if (pressureOn == true) {
+			airC.set(Relay.Value.kOff);
+			SmartDashboard.putString("Compressor", "PSwitched OFF");
+		} else {
+			airC.set(Relay.Value.kForward);
+			SmartDashboard.putString("Compressor", "PSwitched ON");
+		}
+
+	}
+		// Turn Compressor on & off with Pressure Switch 
+		public void humanCompressor() {
 	
-		/*
-		//Turn on based on pressure switch
-		if (pressureOn==true) {
-	        airC.set(Relay.Value.kOff);
-	        SmartDashboard.putString("Compressor", "PSwitched OFF");
-		} 
-		
-				*/
 		// Manually change through Manipulator Joystick
 		if (xMan.getRawButton(A_BUTTON)==true ){  
 				airC.set(Relay.Value.kForward);
-				SmartDashboard.putString(  "Compressor", "On");
+				SmartDashboard.putString(  "Compressor", "human On");
 			}                     		
-		else if (xMan.getRawButton(B_BUTTON)==true && flag == false){    
+		else if (xMan.getRawButton(B_BUTTON)==true){    
 				airC.set(Relay.Value.kOff);
-				SmartDashboard.putString(  "Compressor", "Off");
-				flag =true;
+				SmartDashboard.putString( "Compressor", "human Off");
 			 }
-/*
-		else if (xMan.getRawButton(B_BUTTON)==true && flag == true){    
-						if (pressureOn == false){
-					        airC.set(Relay.Value.kOn);
-					        SmartDashboard.putString("Compressor", "PSwitched ON");
-					   }
-		}
-*/
+		
 			
 }
 
