@@ -171,8 +171,11 @@ public class HkBot extends SampleRobot {
 
 		double collectTrigger = xMan.getRawAxis(LEFT_UP_AXIS);
 		
-		if(collectTrigger > 0.05 || collectTrigger < -0.05){
-			collectWheels(-0.6);
+		if(collectTrigger > 0.05){
+			collectWheels(0.4);
+			launchWheels(1.0);
+		} else if( collectTrigger < -0.05){
+			collectWheels(-0.4);
 			launchWheels(-1.0);
 		} else if(!lowGoalFlag){ //don't interfere with lowGoalSpit method
 			collectWheels(0.0);
