@@ -55,6 +55,7 @@ public class HkBot extends SampleRobot {
 	CANTalon launcherRight = new CANTalon(9);
 	CANTalon launcherLeft = new CANTalon(8);
 	CANTalon armMotor = new CANTalon(7);
+	CANTalon armMotor2 = new CANTalon(10); 
 	Talon strongCollector = new Talon(0);
 
 	/* Pneumatics */	
@@ -108,6 +109,9 @@ public class HkBot extends SampleRobot {
 	    strategy.addObject("Portcullis Strategy", new Integer(3));
 	    SmartDashboard.putData("strategy selector", strategy);
 
+		armMotor2.changeControlMode(TalonControlMode.Follower);
+		armMotor2.set(7);
+		
 		//exime.camInit();
 	}
 
@@ -129,7 +133,7 @@ public class HkBot extends SampleRobot {
 			//jameseyTestCamera();
             
 		    autoCompressor();
-		    //humanCompressor();
+		  // humanCompressor();
 		    checkPressureSwitch();
 		    checkLimitSwitches();
 			checkUltrasonic();
@@ -152,7 +156,7 @@ public class HkBot extends SampleRobot {
 			
 			//ourTable.run();
 		
-			Timer.delay(0.005); // wait 5ms to avoid hogging CPU cycles
+			Timer.delay(0.010); // wait 5ms to avoid hogging CPU cycles
 		}
 
 	}
@@ -163,14 +167,14 @@ public class HkBot extends SampleRobot {
 
 	/*Collector method that spins collector and motor wheels in simultaneously
 	 */
-	public void comboCollector() {
+	private void comboCollector() {
 
 		double collectTrigger = xMan.getRawAxis(LEFT_UP_AXIS);
 		
 		if(collectTrigger > 0.05 || collectTrigger < -0.05){
 			collectWheels(-0.6);
 			launchWheels(-1.0);
-		} else if(xMan.getRawAxis(LT_AXIS) < 0.5){ //don't interfere with lowGoalSpit method
+		} else if(!lowGoalFlag){ //don't interfere with lowGoalSpit method
 			collectWheels(0.0);
 			launchWheels(0.0);
 		}
@@ -184,6 +188,9 @@ public class HkBot extends SampleRobot {
 		armMotor.changeControlMode(TalonControlMode.Position);
 		armMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		armMotor.setPID(1.200, 0.001, 0.010);
+		
+		armMotor2.changeControlMode(TalonControlMode.Follower);
+		armMotor2.set(7);
 		
 		
 		//Check if a limit swith is hit before moving
@@ -238,9 +245,9 @@ public class HkBot extends SampleRobot {
 			desiredAngleValue = drawbridgeAngleValue; // raise the armstrong out
 														// of the way, needs
 														// comboCollector!
-			collectWheels(1.0);
+			collectWheels(-0.6);
 			lowerLauncher(); // angle launcher down
-			launchWheels(1.0); // start spinning the launcher wheels out
+			launchWheels(-1.0); // start spinning the launcher wheels out
 			lowGoalFlag = true; // flip the flag
 			timerSpit.start();
 			timerSpit.reset(); // reset the clock to 0
@@ -374,7 +381,7 @@ public class HkBot extends SampleRobot {
 /* SIMPLE JOYSTICK METHODS */
 
 	/* Joystick Method to Collect & Spit out Boulders */
-	public void simpleCollector() {
+	private void simpleCollector() {
 		double speed = xMan.getRawAxis(LEFT_UP_AXIS);
 		collectWheels(-speed);
 		SmartDashboard.putDouble("Collect LeftUpAxis",	speed);
@@ -384,6 +391,9 @@ public class HkBot extends SampleRobot {
 	public void simpleArmstrongMove() {
 		
 		armMotor.changeControlMode(TalonControlMode.PercentVbus);		//go to default control mode
+		armMotor2.changeControlMode(TalonControlMode.Follower);
+		armMotor2.set(7);
+	
 		double speed = xMan.getRawAxis(RIGHT_UP_AXIS);
 		boolean armLimitFloor = !armLimiterFloor.get();
 		boolean armLimitBack = !armLimiterBack.get();
@@ -415,7 +425,7 @@ public class HkBot extends SampleRobot {
 			launchWheels(1.0);
 		} else if (xMan.getRawButton(Y_BUTTON) == true) {
 			launchWheels(-1.0);
-		} else if (xMan.getRawAxis(LEFT_UP_AXIS)==0.0) {
+		} else if (!lowGoalFlag && xMan.getRawAxis(LEFT_UP_AXIS)<0.2 && xMan.getRawAxis(LEFT_UP_AXIS)>-0.2 ) {
 			launchWheels(0.0);		}
 	}
 	
@@ -557,12 +567,12 @@ public class HkBot extends SampleRobot {
 	/* Raise launcher */
 	public void raiseLauncher() { 
 		angler.setDirection(Relay.Direction.kBoth);
-		angler.set(Relay.Value.kForward);
+		angler.set(Relay.Value.kReverse);
 	}
 	/* Lower launcher */
 	public void lowerLauncher(){
 		angler.setDirection(Relay.Direction.kBoth);
-		angler.set(Relay.Value.kReverse);
+		angler.set(Relay.Value.kForward);
 	}
 	 
 	/* AUTO Go forward (ADONIS) */

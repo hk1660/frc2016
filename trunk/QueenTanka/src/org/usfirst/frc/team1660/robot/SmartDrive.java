@@ -173,6 +173,17 @@ public void basicTinkDrivePID(){
 		
 }
 
+private double squareInputWithThreshold(double value){
+	if(value < 0.05 && value > -0.05 ){
+		return 0;
+	}
+	
+	if (value > 0){
+		return 0.2 + (Math.pow(value, 4) * 0.8);
+	}
+	return -0.2 + (Math.pow(value, 4) * -0.8);
+}
+
 public void basicTinkDriveFollowers(){
 	left2.changeControlMode(TalonControlMode.Follower);
 	left2.set(1);
@@ -190,9 +201,8 @@ public void basicTinkDriveFollowers(){
 		double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
 
 		basicTinkDriveFollowers();
-
-		left1.set(-leftAxis);
-		right1.set(rightAxis);
+		left1.set(-1 * squareInputWithThreshold(leftAxis));
+		right1.set(squareInputWithThreshold(rightAxis) * 0.8);
 
 		SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
 		SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
