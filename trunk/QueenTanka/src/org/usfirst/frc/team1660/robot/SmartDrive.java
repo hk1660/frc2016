@@ -224,19 +224,25 @@ public void basicTinkDriveFollowers(){
 		return right1.getEncPosition();
 	}
 	
-	//zero the right encoder
+	//zero the drive encoders
 	public void zeroRightEnc(){
 		right1.setEncPosition(0);
 	}
-
+	public void zeroLeftEnc(){
+		left1.setEncPosition(0);
+	}
+	
 	
 	public void autoTinkDrive(double leftSpeed, double rightSpeed) { 
 
 		//basicTinkDrivePID();
 		basicTinkDriveFollowers();
 		
-		left1.set(-1 * squareInputWithThreshold(leftSpeed));
-		right1.set(squareInputWithThreshold(rightSpeed) * 1.0);
+		double leftDriveScale = 1.0;
+		double rightDriveScale = 1.0;
+		
+		left1.set(squareInputWithThreshold(leftSpeed) * -leftDriveScale);
+		right1.set(squareInputWithThreshold(rightSpeed) * rightDriveScale);
 
 		SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
 		SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
@@ -244,5 +250,47 @@ public void basicTinkDriveFollowers(){
 		SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
 
 	}
+
+	
+	
+	// combo sides Encoder
+	public void autoEncDrive(int desiredInches, double speed) {
+
+		left1.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
+		right1.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
+
+		int autoEncoderFoot = 514;
+		int autoEncoderInch = autoEncoderFoot / 12;
+
+		zeroRightEnc();
+		zeroLeftEnc();
+
+		boolean rightFlag = true;
+		boolean leftFlag = true;
+
+		while (rightFlag || leftFlag) {
+			if (right1.getEncPosition() < desiredInches * autoEncoderInch) {
+				right1.set(speed);
+			} else {
+				right1.set(0);
+				rightFlag = false;
+			}
+
+			if (left1.getEncPosition() < desiredInches * autoEncoderInch) {
+				left1.set(speed);
+			} else {
+				left1.set(0);
+				leftFlag = false;
+			}
+
+			SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
+			SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
+			SmartDashboard.putDouble("Left Motor Enc Speed",left1.getEncVelocity());
+			SmartDashboard.putDouble("Right Motor Enc Speed",right1.getEncVelocity());
+
+		}
+	}	
+	
+	
 	
 }

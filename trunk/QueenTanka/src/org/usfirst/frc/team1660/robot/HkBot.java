@@ -461,20 +461,25 @@ public class HkBot extends SampleRobot {
 	/*AUTO method if lined up in front of LowBar */
 	void driveForwardStrategy(){
 		double speed = 0.8;
+		smartDrive.autoEncDrive(72, speed);
+		
+		
 		//Timer timerA = new Timer();
 		//timerA.start();
 		
-	    int autoEncoderFoot = 514;
-	    smartDrive.zeroRightEnc();
+	    //int autoEncoderFoot = 514;
+	    //smartDrive.zeroRightEnc();
 	    
 	    //while(timerA.get() < 5.0 && smartDrive.rightEncPosition() < 2 * autoEncoderFoot){    
-	    while(smartDrive.rightEncPosition() < (6 * autoEncoderFoot)){
+	    /*
+		while(smartDrive.rightEncPosition() < (6 * autoEncoderFoot)){
 	    	goForward(speed);
 		}
 	    
 	    while(true){
 	    	goForward(0);
 	    }
+	    */
 	}
 	
 	/*AUTO method if lined up in front of Cheval de Frise*/
