@@ -29,18 +29,19 @@ public class SmartDrive {
 	final int POV_DOWN = 180;
 	final int POV_RIGHT = 270;
 	
-	CANTalon left1 = new CANTalon(1);
-	CANTalon left2 = new CANTalon(2);
-	CANTalon left3 = new CANTalon(3);
-	CANTalon right1 = new CANTalon(4);
-	CANTalon right2 = new CANTalon(5);
-	CANTalon right3 = new CANTalon(6);
+	public CANTalon left1 = new CANTalon(1);
+	public CANTalon left2 = new CANTalon(2);
+	public CANTalon left3 = new CANTalon(3);
+	public CANTalon right1 = new CANTalon(4);
+	public CANTalon right2 = new CANTalon(5);
+	public CANTalon right3 = new CANTalon(6);
 
 	Joystick xDrive = new Joystick(0);
 	double leftAxis = xDrive.getRawAxis(1);
     double rightAxis = xDrive.getRawAxis(5);
     
     int encThreshold = 1400;
+
 
 	public SmartDrive() { // constructor
 		//basicTinkDrivePID();			
@@ -157,6 +158,19 @@ public class SmartDrive {
 	}
 
 
+private double squareInputWithThreshold(double value){
+	if(value < 0.05 && value > -0.05 ){
+		return 0;
+	}
+	
+	if (value > 0){
+		return 0.2 + (Math.pow(value, 4) * 0.8);
+	}
+	return -0.2 + (Math.pow(value, 4) * -0.8);
+}
+
+	
+
 	/* Basic drivetrain movement */
 	/* basic PID control for left & right side of drivetrain
 	 * 
@@ -173,17 +187,6 @@ public void basicTinkDrivePID(){
 		
 }
 
-private double squareInputWithThreshold(double value){
-	if(value < 0.05 && value > -0.05 ){
-		return 0;
-	}
-	
-	if (value > 0){
-		return 0.2 + (Math.pow(value, 4) * 0.8);
-	}
-	return -0.2 + (Math.pow(value, 4) * -0.8);
-}
-
 public void basicTinkDriveFollowers(){
 	left2.changeControlMode(TalonControlMode.Follower);
 	left2.set(1);
@@ -195,12 +198,14 @@ public void basicTinkDriveFollowers(){
 	right3.set(4);	
 }
 
-	public void basicTinkDrive() {
+	public void basicTinkDrive() { 
 
 		double leftAxis = xDrive.getRawAxis(LEFT_UP_AXIS);
 		double rightAxis = xDrive.getRawAxis(RIGHT_UP_AXIS);
 
+		//basicTinkDrivePID();
 		basicTinkDriveFollowers();
+		
 		left1.set(-1 * squareInputWithThreshold(leftAxis));
 		right1.set(squareInputWithThreshold(rightAxis) * 0.8);
 
@@ -210,5 +215,34 @@ public void basicTinkDriveFollowers(){
 		SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
 
 	}
+	
+	//accessor method for right encoder
+	public double rightEncPosition(){
+		SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
+		SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
 
+		return right1.getEncPosition();
+	}
+	
+	//zero the right encoder
+	public void zeroRightEnc(){
+		right1.setEncPosition(0);
+	}
+
+	
+	public void autoTinkDrive(double leftSpeed, double rightSpeed) { 
+
+		//basicTinkDrivePID();
+		basicTinkDriveFollowers();
+		
+		left1.set(-1 * squareInputWithThreshold(leftSpeed));
+		right1.set(squareInputWithThreshold(rightSpeed) * 1.0);
+
+		SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
+		SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
+		SmartDashboard.putDouble("Left Motor Enc Speed", left1.getEncVelocity());
+		SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
+
+	}
+	
 }

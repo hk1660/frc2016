@@ -122,7 +122,7 @@ public class HkBot extends SampleRobot {
     
 		while (isAutonomous() && isEnabled()) {
 			
-			  
+			  driveForwardStrategy();
 		}
 	}
 
@@ -156,7 +156,7 @@ public class HkBot extends SampleRobot {
 			
 			//ourTable.run();
 		
-			Timer.delay(0.010); // wait 5ms to avoid hogging CPU cycles
+			Timer.delay(0.007); // wait 5ms to avoid hogging CPU cycles
 		}
 
 	}
@@ -346,7 +346,7 @@ public class HkBot extends SampleRobot {
 	}
 		
 	/*Camera check method */
-	public void jameseyTestCamera(){
+	/*public void jameseyTestCamera(){
 
 		double[] areas = table.getNumberArray("area", defaultValue);
 		System.out.print("Areas: ");
@@ -365,7 +365,7 @@ public class HkBot extends SampleRobot {
 			System.out.println("Yo yo yo");
 		}
 */
-		double x = table.getNumber("centerX", 0.0);
+	/*	double x = table.getNumber("centerX", 0.0);
 		double y = table.getNumber("centerY", 0.0);
 		double width = table.getNumber("width", 0.0);
 		double area = table.getNumber("area", 0.0);
@@ -379,7 +379,7 @@ public class HkBot extends SampleRobot {
 
 		
 	}
-	
+	*/
 	
 /* SIMPLE JOYSTICK METHODS */
 
@@ -460,12 +460,21 @@ public class HkBot extends SampleRobot {
 	
 	/*AUTO method if lined up in front of LowBar */
 	void driveForwardStrategy(){
-		double speed = 0.5;
-		Timer timerA = new Timer();
-		timerA.start();
-		while(timerA.get() < 5.0){
-			goForward(speed);
+		double speed = 0.8;
+		//Timer timerA = new Timer();
+		//timerA.start();
+		
+	    int autoEncoderFoot = 514;
+	    smartDrive.zeroRightEnc();
+	    
+	    //while(timerA.get() < 5.0 && smartDrive.rightEncPosition() < 2 * autoEncoderFoot){    
+	    while(smartDrive.rightEncPosition() < (6 * autoEncoderFoot)){
+	    	goForward(speed);
 		}
+	    
+	    while(true){
+	    	goForward(0);
+	    }
 	}
 	
 	/*AUTO method if lined up in front of Cheval de Frise*/
@@ -580,7 +589,7 @@ public class HkBot extends SampleRobot {
 	 
 	/* AUTO Go forward (ADONIS) */
 	public void goForward(double speed) {
-		smartDrive.tinkDrive(speed, speed);
+		smartDrive.autoTinkDrive(speed, speed);
 	}
 
 	/* AUTO Turn right (ADONIS) */
