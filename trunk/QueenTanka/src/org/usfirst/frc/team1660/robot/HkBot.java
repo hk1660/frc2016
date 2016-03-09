@@ -460,10 +460,11 @@ public class HkBot extends SampleRobot {
 	
 	/*AUTO method if lined up in front of LowBar */
 	void driveForwardStrategy(){
-		double speed = 0.8;
-		smartDrive.autoEncDrive(72, speed);
-		
-		
+		double speed = 0.6;
+		for (int i = 0; i < 12; i++) {
+			smartDrive.autoEncDrive(6, speed);
+		}
+
 		//Timer timerA = new Timer();
 		//timerA.start();
 		

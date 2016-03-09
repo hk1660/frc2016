@@ -244,13 +244,17 @@ public void basicTinkDriveFollowers(){
 		left1.set(squareInputWithThreshold(leftSpeed) * -leftDriveScale);
 		right1.set(squareInputWithThreshold(rightSpeed) * rightDriveScale);
 
+		encDash();
+	}
+
+	//Encoder on smartdash
+	public void encDash(){
 		SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
 		SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
 		SmartDashboard.putDouble("Left Motor Enc Speed", left1.getEncVelocity());
 		SmartDashboard.putDouble("Right Motor Enc Speed", right1.getEncVelocity());
 
 	}
-
 	
 	
 	// combo sides Encoder
@@ -271,23 +275,21 @@ public void basicTinkDriveFollowers(){
 		while (rightFlag || leftFlag) {
 			if (right1.getEncPosition() < desiredInches * autoEncoderInch) {
 				right1.set(speed);
+				encDash();
 			} else {
 				right1.set(0);
 				rightFlag = false;
 			}
 
 			if (left1.getEncPosition() < desiredInches * autoEncoderInch) {
-				left1.set(speed);
+				left1.set(-speed);
+				encDash();
 			} else {
 				left1.set(0);
 				leftFlag = false;
 			}
 
-			SmartDashboard.putDouble("Left Motor Enc", left1.getEncPosition());
-			SmartDashboard.putDouble("Right Motor Enc", right1.getEncPosition());
-			SmartDashboard.putDouble("Left Motor Enc Speed",left1.getEncVelocity());
-			SmartDashboard.putDouble("Right Motor Enc Speed",right1.getEncVelocity());
-
+			encDash();
 		}
 	}	
 	
