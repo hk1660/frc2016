@@ -138,7 +138,8 @@ public class HkBot extends SampleRobot {
 		    checkLimitSwitches();
 			checkUltrasonic();
 			
-			smartDrive.basicTinkDrive();
+			smartDrive.arcadeDrive();
+			//smartDrive.basicTinkDrive();
 			// smartDrive.joyTinkDrive();
 			
 			//simpleArmstrongMove();

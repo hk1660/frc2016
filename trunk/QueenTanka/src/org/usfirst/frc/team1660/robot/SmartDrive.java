@@ -164,9 +164,9 @@ private double squareInputWithThreshold(double value){
 	}
 	
 	if (value > 0){
-		return 0.2 + (Math.pow(value, 4) * 0.8);
+		return 0.2 + (Math.pow(value, 2) * 0.8);
 	}
-	return -0.2 + (Math.pow(value, 4) * -0.8);
+	return -0.2 + (Math.pow(value, 2) * -0.8);
 }
 
 	
@@ -291,8 +291,23 @@ public void basicTinkDriveFollowers(){
 
 			encDash();
 		}
+		
+	}
+		/* Driving the robot with Joysticks arcade Drive */
+		public void arcadeDrive() {
+		
+			double up = xDrive.getRawAxis(RIGHT_UP_AXIS);
+			double side = xDrive.getRawAxis(RIGHT_SIDEWAYS_AXIS);
+			
+			double leftSpeed = squareInputWithThreshold(-up  + side);
+			double rightSpeed =squareInputWithThreshold(-up  - side);
+
+			basicTinkDriveFollowers();
+			
+			left1.set(leftSpeed);
+			right1.set(-rightSpeed);
+
+			encDash();		
 	}	
-	
-	
 	
 }
